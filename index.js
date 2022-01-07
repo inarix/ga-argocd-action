@@ -1,4 +1,5 @@
 const { getInput, info, setFailed, setOutput, getBooleanInput } = require("@actions/core")
+const fetch = require("node-fetch")
 
 const getInputs = () => {
 	try {
@@ -54,7 +55,7 @@ const getInputs = () => {
 }
 
 const syncApplication = (inputs = getInputs()) => {
-	fetch(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}/sync`)
+	fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}/sync`)
 		.catch(err => setFailed(err.message))
 		.then(r => r.json())
 		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))
@@ -62,14 +63,14 @@ const syncApplication = (inputs = getInputs()) => {
 
 const createApplication = (inputs = getInputs()) => {
 	specs = generateSpecs(inputs)
-	return fetch(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, { method: "POST", body: JSON.stringify(specs) })
+	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, { method: "POST", body: JSON.stringify(specs) })
 		.catch(err => setFailed(err.messsage))
 		.then(r => r.json())
 		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))
 }
 
 const readApplication = (inputs = getInputs()) => {
-	return fetch(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
+	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 		.catch(err => setFailed(err.message))
 		.then((r) => r.json())
 		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))
@@ -77,12 +78,12 @@ const readApplication = (inputs = getInputs()) => {
 
 const updateApplication = (inputs = getInputs()) => {
 	specs = generateSpecs(inputs)
-	return fetch(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, { method: "PATCH", body: JSON.stringify(specs) })
+	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, { method: "PATCH", body: JSON.stringify(specs) })
 		.catch(err => setFailed(err.messsage))
 }
 
 const deleteApplication = (inputs = getInputs()) => {
-	return fetch(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, { method: "DELETE" })
+	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, { method: "DELETE" })
 		.catch(err => setFailed(err.message))
 }
 

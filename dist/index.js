@@ -1676,39 +1676,39 @@ module.exports = require("util");
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
-const { getInput, debug, setFailed, setOutput, getBooleanInput } = __nccwpck_require__(619)
+const { getInput, info, setFailed, setOutput, getBooleanInput } = __nccwpck_require__(619)
 
 const getInputs = () => {
 	try {
 		const token = getInput("argocdToken", { required: true })
 		const endpoint = getInput("argocdEndpoint", { required: true })
-		debug(`endpoint=${endpoint}`)
+		info(`endpoint=${endpoint}`)
 		const applicationName = getInput("applicationName", { required: true })
-		debug(`applicationName=${applicationName}`)
+		info(`applicationName=${applicationName}`)
 		const helmRepoUrl = getInput("helmRepoUrl", { required: true })
-		debug(`helmRepoUrl=${helmRepoUrl}`)
+		info(`helmRepoUrl=${helmRepoUrl}`)
 		const helmChartVersion = getInput("helmChartVersion", { required: true })
-		debug(`helmChartVersion=${helmChartVersion}`)
+		info(`helmChartVersion=${helmChartVersion}`)
 		const helmChartName = getInput("helmChartName", { required: true })
-		debug(`helmChartName=${helmChartName}`)
+		info(`helmChartName=${helmChartName}`)
 
 		//Non required values
 		const applicationNamespace = getInput("applicationNamespace") || "default"
-		debug(`applicationNamespace=${applicationNamespace}`)
+		info(`applicationNamespace=${applicationNamespace}`)
 		const applicationProject = getInput("applicationProject")
-		debug(`applicationProject=${applicationProject}`)
+		info(`applicationProject=${applicationProject}`)
 		const applicationParams = getInput("applicationParams")
-		debug(`applicationParams=${applicationParams}`)
+		info(`applicationParams=${applicationParams}`)
 		const action = getInput("actionName") || "create"
-		debug(`action=${action}`)
+		info(`action=${action}`)
 		const maxRetry = getInput("maxRetry") || "5"
-		debug(`maxRetry=${maxRetry}`)
+		info(`maxRetry=${maxRetry}`)
 		const tts = getInput("tts") || "10"
-		debug(`tts=${tts}`)
+		info(`tts=${tts}`)
 		const destClusterName = getInput("destClusterName")
-		debug(`destClusterName=${destClusterName}`)
+		info(`destClusterName=${destClusterName}`)
 		const doSync = getBooleanInput("doSync")
-		debug(`doSync=${doSync}`)
+		info(`doSync=${doSync}`)
 
 		return {
 			token,

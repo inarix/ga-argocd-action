@@ -12,6 +12,8 @@ jobs:
     name: create test application
     runs-on: ubuntu-latest
     steps:
+      - name: checkout
+        uses: actions/checkout@v2
       - name: argocd-create-aplication
         id: createApp
         uses: ./
@@ -46,6 +48,8 @@ jobs:
     needs: update-application
     runs-on: ubuntu-latest
     steps:
+      - name: checkout
+        uses: actions/checkout@v2
       - name: argocd-delete-aplication
         id: deleteApp
         uses: ./

@@ -8609,7 +8609,7 @@ const generateSpecs = (inputs = getInputs()) => {
 
 const main = () => {
 	inputs = getInputs()
-	info(inputs)
+	info(JSON.stringify(inputs))
 	switch (inputs.action) {
 		case "delete":
 			deleteApplication(inputs)
@@ -8621,7 +8621,7 @@ const main = () => {
 		case "update":
 			updateApplication(inputs)
 		default:
-			setFailed(new Error(`${inputs.actionName} does not exists in (create, get|read, update, delete)`))
+			setFailed(new Error(`${inputs.action} does not exists in (create, get|read, update, delete)`))
 	}
 }
 

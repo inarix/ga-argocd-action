@@ -120,18 +120,17 @@ const generateSpecs = (inputs = getInputs()) => {
 }
 
 const main = () => {
-	inputs = getInputs()
 
-	switch (inputs.actionName) {
+	switch (getInputs().actionName) {
 		case "delete":
-			deleteApplication(inputs)
+			deleteApplication()
 		case "get":
 		case "read":
-			readApplication(inputs)
+			readApplication()
 		case "create":
-			createApplication(inputs)
+			createApplication()
 		case "update":
-			updateApplication(inputs)
+			updateApplication()
 		default:
 			setFailed(new Error(`${inputs.actionName} does not exists in (create, get|read, update, delete)`))
 	}

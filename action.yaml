@@ -1,0 +1,57 @@
+name: "ga-argocd-action"
+description: "GithubAction which handle base CRUD on given application name"
+inputs:
+  argocdToken:
+    description: "ArgoCD token"
+    required: true
+  argocdEndpoint:
+    description: "Entrypoint of ArgoCD applicatin (e.g https://argocd.example.com)"
+    required: true
+  destClusterName:
+    description: "Destination cluster name"
+    required: true
+  applicationProject:
+    description: "Project name where application should be deployed"
+    required: false
+    default: ""
+  applicationParams:
+    description: "Helm parameters of the application to create/update in format 'name=value;name=value;...'"
+    required: false
+  applicationName:
+    description: "Name of the application to create/update/delete"
+    required: true
+  applicationNamespace:
+    description: "Namespace when application is/will be deployed"
+    required: false
+    default: "default"
+  helmChartName:
+    description: "Name of Helm chart to apply"
+    required: true
+  helmChartVersion:
+    description: "Helm chart version to apply"
+    required: true
+  helmRepoUrl:
+    description: "Helm repository which holds application chart"
+    required: true
+  actionName:
+    description: "One of create, read|get, update, delete"
+    required: false
+    default: "create"
+  maxRetry:
+    description: "Max retry of the ArgoCD application creation"
+    required: false
+    default: "15"
+  tts:
+    description: "Time To Sleep before each application status check"
+    default: "10"
+    required: false
+  doSync:
+    description: "Do the action also sync at the end"
+    required: false
+    default: "true"
+outputs:
+  application:
+    description: "Application JSON specs representation"
+runs:
+  using: 'node16'
+  main: 'index.js'

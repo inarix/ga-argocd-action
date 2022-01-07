@@ -1721,7 +1721,6 @@ const getInputs = () => {
 			helmChartName,
 			helmChartVersion,
 			helmRepoUrl,
-			actionName, action,
 			doSync,
 			maxRetry,
 			tts,
@@ -1800,7 +1799,8 @@ const generateSpecs = (inputs = getInputs()) => {
 
 const main = () => {
 	inputs = getInputs()
-	switch (inputs.actionName) {
+	info(inputs)
+	switch (inputs.action) {
 		case "delete":
 			deleteApplication(inputs)
 		case "get":

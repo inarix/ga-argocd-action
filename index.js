@@ -122,7 +122,7 @@ const generateSpecs = (inputs = getInputs()) => {
 const main = () => {
 	inputs = getInputs()
 
-	switch (input.actionName) {
+	switch (inputs.actionName) {
 		case "delete":
 			deleteApplication(inputs)
 		case "get":

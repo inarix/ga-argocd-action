@@ -46,7 +46,8 @@ const getInputs = () => {
 			actionName, action,
 			doSync,
 			maxRetry,
-			tts
+			tts,
+			action
 		}
 	} catch (error) {
 		setFailed(error.message)
@@ -120,17 +121,17 @@ const generateSpecs = (inputs = getInputs()) => {
 }
 
 const main = () => {
-
-	switch (getInputs().actionName) {
+	inputs = getInputs()
+	switch (inputs.actionName) {
 		case "delete":
-			deleteApplication()
+			deleteApplication(inputs)
 		case "get":
 		case "read":
-			readApplication()
+			readApplication(inputs)
 		case "create":
-			createApplication()
+			createApplication(inputs)
 		case "update":
-			updateApplication()
+			updateApplication(inputs)
 		default:
 			setFailed(new Error(`${inputs.actionName} does not exists in (create, get|read, update, delete)`))
 	}

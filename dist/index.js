@@ -8538,6 +8538,7 @@ const generateOpts = (method = "", bearerToken = "", bodyObj) => {
 }
 
 const checkResponse = (response) => {
+	info(`Response from ${response.url}: [${response.status}] ${response.statusText}`)
 	if (response.status >= 200 && response.status < 300) {
 		return response;
 	}

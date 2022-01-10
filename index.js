@@ -77,7 +77,7 @@ const syncApplication = (inputs = getInputs()) => {
 const createApplication = (inputs = getInputs()) => {
 	specs = generateSpecs(inputs)
 	info("specs=" + JSON.stringify(specs))
-	info(`Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
+	info(`Sending request to ${inputs.endpoint}/api/v1/applications`)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("POST", specs))
 		.catch(err => setFailed(err))
 		.then(r => r.json())
@@ -110,7 +110,7 @@ const parseApplicationParams = (appParams = "") => {
 }
 
 const generateSpecs = (inputs = getInputs()) => {
-	helmParameters = parseApplicationParams(inputs.applicationParams).map(v => JSON.stringify(v))
+	helmParameters = parseApplicationParams(inputs.applicationParams)
 	return {
 		"metadata": { "name": `${inputs.applicationName}`, "namespace": "default" },
 		"spec": {
@@ -118,7 +118,7 @@ const generateSpecs = (inputs = getInputs()) => {
 				"repoURL": `${inputs.helmRepoUrl}`,
 				"targetRevision": `${inputs.helmChartVersion}`,
 				"helm": {
-					"parameters": [`${helmParameters}`]
+					"parameters": helmParameters
 				},
 				"chart": `${inputs.helmChartName}`
 			},

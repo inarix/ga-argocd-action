@@ -8490,7 +8490,7 @@ const fetch = __nccwpck_require__(748)
 
 const getInputs = () => {
 	try {
-		const action = getInput("actionName", {required: true})
+		const action = getInput("actionName", { required: true })
 		const token = getInput("argocdToken", { required: true })
 		const endpoint = getInput("argocdEndpoint", { required: true })
 		const applicationName = getInput("applicationName", { required: true })
@@ -8511,6 +8511,7 @@ const getInputs = () => {
 		const tts = getInput("tts") || "10"
 		const destClusterName = getInput("destClusterName")
 		const doSync = getBooleanInput("doSync")
+		const onlySync = getBooleanInput("onlySync")
 
 		if (
 			(action == "create" || action == "update") &&
@@ -8535,6 +8536,7 @@ const getInputs = () => {
 			helmChartVersion,
 			helmRepoUrl,
 			doSync,
+			onlySync,
 			maxRetry,
 			tts,
 			action
@@ -8556,29 +8558,30 @@ const generateOpts = (method = "", bearerToken = "", bodyObj) => {
 const checkResponse = (response) => {
 	info(`Response from ${response.url} [${response.status}] ${response.statusText}`)
 	if (response.status >= 200 && response.status < 300) {
+		if (response.body.readable) info(`body=${response.body.read()}`)
 		return response;
 	}
 	throw new Error(`${response.url} ${response.statusText}`);
 }
 
 const syncApplication = (inputs = getInputs()) => {
-	fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}/sync`, generateOpts("post", inputs.token, null))
+	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}/sync`, generateOpts("post", inputs.token, null))
 		.then(checkResponse)
 		.catch(err => setFailed(err.message))
 }
 
 const createApplication = (inputs = getInputs()) => {
 	specs = generateSpecs(inputs)
-	info(`Sending request to ${inputs.endpoint}/api/v1/applications`)
+	info(`[CREATE] Sending request to ${inputs.endpoint}/api/v1/applications`)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications`, generateOpts("post", inputs.token, specs))
-		.then(checkResponse)
+		.then(r => checkResponse(r))
 		.then(r => r.json())
 		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))
 		.catch(err => setFailed(err))
 }
 
 const readApplication = (inputs = getInputs()) => {
-	info(`Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
+	info(`[READ] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("get", inputs.token, null))
 		.then((r) => r.json())
 		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))
@@ -8586,13 +8589,15 @@ const readApplication = (inputs = getInputs()) => {
 }
 
 const updateApplication = (inputs = getInputs()) => {
+	info(`[UPDATE] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 	specs = generateSpecs(inputs)
-	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("patch", inputs.token, specs))
+	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("put", inputs.token, specs))
 		.then(checkResponse)
 		.catch(err => setFailed(err))
 }
 
 const deleteApplication = (inputs = getInputs()) => {
+	info(`[DELETE] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("delete", inputs.token, null))
 		.then(checkResponse)
 		.catch(err => setFailed(err))
@@ -8608,21 +8613,24 @@ const parseApplicationParams = (appParams = "") => {
 const generateSpecs = (inputs = getInputs()) => {
 	helmParameters = parseApplicationParams(inputs.applicationParams)
 	return {
-		"metadata": { "name": `${inputs.applicationName}`, "namespace": "default" },
-		"spec": {
-			"source": {
-				"repoURL": `${inputs.helmRepoUrl}`,
-				"targetRevision": `${inputs.helmChartVersion}`,
-				"helm": {
-					"parameters": helmParameters
+		metadata: {
+			name: inputs.applicationName,
+			namespace: "default"
+		},
+		spec: {
+			source: {
+				repoURL: inputs.helmRepoUrl,
+				targetRevision: inputs.helmChartVersion,
+				helm: {
+					parameters: helmParameters
 				},
-				"chart": `${inputs.helmChartName}`
+				chart: inputs.helmChartName
 			},
-			"destination": {
-				"name": `${inputs.destClusterName}`, "namespace": `${inputs.applicationNamespace}`
+			destination: {
+				name: inputs.destClusterName, namespace: inputs.applicationNamespace
 			},
-			"project": `${inputs.applicationProject}`,
-			"syncPolicy": {}
+			project: inputs.applicationProject,
+			syncPolicy: {}
 		}
 	}
 }
@@ -8630,10 +8638,13 @@ const generateSpecs = (inputs = getInputs()) => {
 const main = () => {
 	inputs = getInputs()
 	prom = null
+	if (inputs.onlySync) {
+		return syncApplication(inputs)
+	}
+
 	switch (inputs.action) {
 		case "delete":
-			deleteApplication(inputs)
-			break
+			return deleteApplication(inputs)
 		case "get":
 		case "read":
 			prom = readApplication(inputs)
@@ -8649,10 +8660,7 @@ const main = () => {
 			return
 	}
 	if (prom != null) {
-		prom.then(() => {
-			if (inputs.doSync) syncApplication(inputs)
-		})
-
+		return prom.then(() => inputs.doSync ? syncApplication(inputs) : prom)
 	}
 }
 

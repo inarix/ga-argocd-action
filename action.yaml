@@ -48,9 +48,13 @@ inputs:
     description: "Do the action also sync at the end"
     required: false
     default: "true"
+  onlySync:
+    required: false
+    default: "false"
+    description: "Only sync given application"
 outputs:
   application:
     description: "Application JSON specs representation"
 runs:
-  using: 'node16'
-  main: 'dist/index.js'
+  using: "node16"
+  main: "dist/index.js"

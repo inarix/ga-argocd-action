@@ -54,6 +54,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: argocd-create-aplication
+        id: updateApp
+        uses: ./
+        with:
+          argocdToken: ${{secrets.ARGOCD_TOKEN}}
+          argocdEndpoint: "https://argocd.inarix.com"
+          destClusterName: "in-cluster"
+          applicationName: "test-application-simba"
+          helmChartName: "simba"
+          helmChartVersion: "0.6.1"
+          helmRepoUrl: "https://charts.inarix.com"
+          actionName: "update"
+          applicationParams: "image.tag=latest"
+      - name: flush result
+        run: echo "Result=$(echo ${{steps.updateApp.outputs.application}} | jq)"
   delete-application:
     name: delete created application
     needs: update-application

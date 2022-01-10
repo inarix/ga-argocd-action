@@ -100,7 +100,7 @@ const parseApplicationParams = (appParams = "") => {
 }
 
 const generateSpecs = (inputs = getInputs()) => {
-	helmParameters = parseApplicationParams(inputs.applicationParams)
+	helmParameters = JSON.stringify(parseApplicationParams(inputs.applicationParams))
 	return {
 		"metadata": { "name": `${inputs.applicationName}`, "namespace": "default" },
 		"spec": {

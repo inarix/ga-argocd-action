@@ -20,6 +20,17 @@ const getInputs = () => {
 		const destClusterName = getInput("destClusterName")
 		const doSync = getBooleanInput("doSync")
 
+		if (
+			(action == "create" || action == "update") &&
+			(applicationParams == ""
+				|| destClusterName == ""
+				|| helmChartName == ""
+				|| helmChartVersion == ""
+				|| helmRepoUrl == "")
+		) {
+			throw new Error(`You must also provide (applicationParams, destClusterName, helmChartName, helmChartVersion, helmRepoUrl) inputs when using ${action} action`)
+		}
+
 		return {
 			token,
 			endpoint,
@@ -51,11 +62,11 @@ const generateOpts = (method = "", bearerToken = "", bodyObj) => {
 }
 
 const checkResponse = (response) => {
-	info(`Response from ${response.url}: [${response.status}] ${response.statusText}`)
+	info(`Response from ${response.url} [${response.status}] ${response.statusText}`)
 	if (response.status >= 200 && response.status < 300) {
 		return response;
 	}
-	throw new Error(response.statusText);
+	throw new Error(`${response.url} ${response.statusText}`);
 }
 
 const syncApplication = (inputs = getInputs()) => {

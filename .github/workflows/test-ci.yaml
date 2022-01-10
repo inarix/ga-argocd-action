@@ -28,7 +28,7 @@ jobs:
           actionName: "create"
           applicationParams: "app.channelId=987654321;app.giphyToken=abcef;app.slackToken=${{secrets.SLACK_API_TOKEN}};db.host=localhost:5432;db.user=admin;db.password=admin;db.name=simba;ingress.hosts[0].host=simba2.inarix.com;ingress.tls[0].secretName=simba2-tls"
       - name: flush result
-        run: echo "Result=$(${{steps.createApp.outputs.application}} | jq)"
+        run: echo "Result=$(echo ${{steps.createApp.outputs.application}} | jq)"
   read-application:
     needs: create-application
     name: read/get application
@@ -36,6 +36,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: argocd-create-aplication
+        id: readApplication
+        uses: ./
+        with:
+          argocdToken: ${{secrets.ARGOCD_TOKEN}}
+          argocdEndpoint: "https://argocd.inarix.com"
+          applicationName: "test-application-simba"
+          actionName: "get"
+      - name: flush result
+        run: echo "Result=$(echo ${{steps.readApplication.outputs.application}} | jq)"
   update-application:
     name: update created application
     needs: read-application
@@ -56,9 +66,5 @@ jobs:
         with:
           argocdToken: ${{secrets.ARGOCD_TOKEN}}
           argocdEndpoint: "https://argocd.inarix.com"
-          destClusterName: "in-cluster"
           applicationName: "test-application-simba"
-          helmChartName: "simba"
-          helmChartVersion: "0.6.1"
-          helmRepoUrl: "https://charts.inarix.com"
           actionName: "delete"

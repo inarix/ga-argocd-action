@@ -9,7 +9,7 @@ inputs:
     required: true
   destClusterName:
     description: "Destination cluster name"
-    required: true
+    required: false
   applicationProject:
     description: "Project name where application should be deployed"
     required: false
@@ -26,17 +26,16 @@ inputs:
     default: "default"
   helmChartName:
     description: "Name of Helm chart to apply"
-    required: true
+    required: false
   helmChartVersion:
     description: "Helm chart version to apply"
-    required: true
+    required: false
   helmRepoUrl:
     description: "Helm repository which holds application chart"
-    required: true
+    required: false
   actionName:
     description: "One of create, read|get, update, delete"
-    required: false
-    default: "create"
+    required: true
   maxRetry:
     description: "Max retry of the ArgoCD application creation"
     required: false

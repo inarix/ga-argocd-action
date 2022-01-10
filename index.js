@@ -91,13 +91,12 @@ const deleteApplication = (inputs = getInputs()) => {
 const parseApplicationParams = (appParams = "") => {
 	return appParams.split(";").map((v) => {
 		const [name, value] = v.split("=", 2)
-		info(`name=${name};value=${value}`)
 		return { "name": name, "value": value }
 	})
 }
 
 const generateSpecs = (inputs = getInputs()) => {
-	helmParameters = parseApplicationParams(inputs.applicationParams)
+	helmParameters = parseApplicationParams(inputs.applicationParams).map(v => JSON.stringify(v))
 	return {
 		"metadata": { "name": `${inputs.applicationName}`, "namespace": "default" },
 		"spec": {
@@ -105,7 +104,7 @@ const generateSpecs = (inputs = getInputs()) => {
 				"repoURL": `${inputs.helmRepoUrl}`,
 				"targetRevision": `${inputs.helmChartVersion}`,
 				"helm": {
-					"parameters": `${helmParameters}`
+					"parameters": [`${helmParameters}`]
 				},
 				"chart": `${inputs.helmChartName}`
 			},

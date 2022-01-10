@@ -8505,13 +8505,13 @@ const getInputs = () => {
 		const applicationProject = getInput("applicationProject")
 		const applicationParams = getInput("applicationParams")
 
-
-		//
+		// Others
 		const maxRetry = getInput("maxRetry") || "5"
 		const tts = getInput("tts") || "10"
 		const destClusterName = getInput("destClusterName")
 		const doSync = getBooleanInput("doSync")
 		const onlySync = getBooleanInput("onlySync")
+		const debug = getBooleanInput("debug") || false
 
 		if (
 			(action == "create" || action == "update") &&
@@ -8539,7 +8539,8 @@ const getInputs = () => {
 			onlySync,
 			maxRetry,
 			tts,
-			action
+			action,
+			debug
 		}
 	} catch (error) {
 		setFailed(error.message)
@@ -8555,10 +8556,10 @@ const generateOpts = (method = "", bearerToken = "", bodyObj) => {
 	return { method, body: JSON.stringify(bodyObj), headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` }, }
 }
 
-const checkResponse = (response) => {
+const checkResponse = (inputs, response) => {
 	info(`Response from ${response.url} [${response.status}] ${response.statusText}`)
 	if (response.status >= 200 && response.status < 300) {
-		if (response.body.readable) info(`body=${response.body.read()}`)
+		if (inputs.debug && response.body.readable) response.json().then(r => info(`body=${r}`))
 		return response;
 	}
 	throw new Error(`${response.url} ${response.statusText}`);
@@ -8574,7 +8575,7 @@ const createApplication = (inputs = getInputs()) => {
 	specs = generateSpecs(inputs)
 	info(`[CREATE] Sending request to ${inputs.endpoint}/api/v1/applications`)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications`, generateOpts("post", inputs.token, specs))
-		.then(r => checkResponse(r))
+		.then(r => checkResponse(inputs, r))
 		.then(r => r.json())
 		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))
 		.catch(err => setFailed(err))
@@ -8583,7 +8584,8 @@ const createApplication = (inputs = getInputs()) => {
 const readApplication = (inputs = getInputs()) => {
 	info(`[READ] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("get", inputs.token, null))
-		.then((r) => r.json())
+		.then(r => checkResponse(inputs, r))
+		.then(r => r.json())
 		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))
 		.catch(err => setFailed(err))
 }
@@ -8592,14 +8594,14 @@ const updateApplication = (inputs = getInputs()) => {
 	info(`[UPDATE] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 	specs = generateSpecs(inputs)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("put", inputs.token, specs))
-		.then(checkResponse)
+		.then(r => checkResponse(inputs, r))
 		.catch(err => setFailed(err))
 }
 
 const deleteApplication = (inputs = getInputs()) => {
 	info(`[DELETE] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("delete", inputs.token, null))
-		.then(checkResponse)
+		.then(r => checkResponse(inputs, r))
 		.catch(err => setFailed(err))
 }
 

@@ -8541,6 +8541,19 @@ const getInputs = () => {
 	}
 }
 
+const generateOpts = (method = "", bodyObj) => {
+	if (method != "DELETE") {
+		return { method }
+	}
+	return {
+		method,
+		headers: {
+			"Content-Type": "application/json"
+		},
+		body: JSON.stringify(bodyObj)
+	}
+}
+
 const syncApplication = (inputs = getInputs()) => {
 	fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}/sync`)
 		.catch(err => setFailed(err.message))
@@ -8551,34 +8564,35 @@ const syncApplication = (inputs = getInputs()) => {
 const createApplication = (inputs = getInputs()) => {
 	specs = generateSpecs(inputs)
 	info("specs=" + JSON.stringify(specs))
-	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, { method: "POST", body: JSON.stringify(specs) })
-		.catch(err => setFailed(err.messsage))
+	info(`Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
+	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("POST", specs))
+		.catch(err => setFailed(err))
 		.then(r => r.json())
 		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))
 }
 
 const readApplication = (inputs = getInputs()) => {
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
-		.catch(err => setFailed(err.message))
+		.catch(err => setFailed(err))
 		.then((r) => r.json())
 		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))
 }
 
 const updateApplication = (inputs = getInputs()) => {
 	specs = generateSpecs(inputs)
-	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, { method: "PATCH", body: JSON.stringify(specs) })
-		.catch(err => setFailed(err.messsage))
+	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("PATCH", specs))
+		.catch(err => setFailed(err))
 }
 
 const deleteApplication = (inputs = getInputs()) => {
-	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, { method: "DELETE" })
-		.catch(err => setFailed(err.message))
+	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("DELETE", null))
+		.catch(err => setFailed(err))
 }
 
 const parseApplicationParams = (appParams = "") => {
 	return appParams.split(";").map((v) => {
 		const [name, value] = v.split("=", 2)
-		return { "name": name, "value": value }
+		return { name, value }
 	})
 }
 
@@ -8606,22 +8620,30 @@ const generateSpecs = (inputs = getInputs()) => {
 
 const main = () => {
 	inputs = getInputs()
+	prom = null
 	switch (inputs.action) {
 		case "delete":
 			deleteApplication(inputs)
 			break
 		case "get":
 		case "read":
-			readApplication(inputs)
+			prom = readApplication(inputs)
 			break
 		case "create":
-			createApplication(inputs)
+			prom = createApplication(inputs)
 			break
 		case "update":
-			updateApplication(inputs)
+			prom = updateApplication(inputs)
 			break
 		default:
 			setFailed(new Error(`${inputs.action} does not exists in (create, get|read, update, delete)`))
+			return
+	}
+	if (prom != null) {
+		prom.then(() => {
+			if (inputs.doSync) syncApplication(inputs)
+		})
+
 	}
 }
 

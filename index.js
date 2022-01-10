@@ -126,13 +126,17 @@ const main = () => {
 	switch (inputs.action) {
 		case "delete":
 			deleteApplication(inputs)
+			break
 		case "get":
 		case "read":
 			readApplication(inputs)
+			break
 		case "create":
 			createApplication(inputs)
+			break
 		case "update":
 			updateApplication(inputs)
+			break
 		default:
 			setFailed(new Error(`${inputs.action} does not exists in (create, get|read, update, delete)`))
 	}

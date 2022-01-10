@@ -3,18 +3,23 @@ const fetch = require("node-fetch")
 
 const getInputs = () => {
 	try {
+		const action = getInput("actionName", {required: true})
 		const token = getInput("argocdToken", { required: true })
 		const endpoint = getInput("argocdEndpoint", { required: true })
 		const applicationName = getInput("applicationName", { required: true })
-		const helmRepoUrl = getInput("helmRepoUrl", { required: true })
-		const helmChartVersion = getInput("helmChartVersion", { required: true })
-		const helmChartName = getInput("helmChartName", { required: true })
 
-		//Non required values
+		//Helm values
+		const helmRepoUrl = getInput("helmRepoUrl")
+		const helmChartVersion = getInput("helmChartVersion")
+		const helmChartName = getInput("helmChartName")
+
+		//Application relatives values
 		const applicationNamespace = getInput("applicationNamespace") || "default"
 		const applicationProject = getInput("applicationProject")
 		const applicationParams = getInput("applicationParams")
-		const action = getInput("actionName") || "create"
+
+
+		//
 		const maxRetry = getInput("maxRetry") || "5"
 		const tts = getInput("tts") || "10"
 		const destClusterName = getInput("destClusterName")

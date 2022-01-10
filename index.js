@@ -90,7 +90,7 @@ const deleteApplication = (inputs = getInputs()) => {
 
 const parseApplicationParams = (appParams = "") => {
 	return appParams.split(";").map((v) => {
-		const { name, value } = v.split("=", 2)
+		const [name, value] = v.split("=", 2)
 		info(`name=${name};value=${value}`)
 		return { "name": name, "value": value }
 	})

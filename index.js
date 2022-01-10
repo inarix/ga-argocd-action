@@ -88,19 +88,16 @@ const deleteApplication = (inputs = getInputs()) => {
 		.catch(err => setFailed(err.message))
 }
 
-const createHelmParam = (name, value) => {
-	return { "name": name, "value": value }
-}
-
 const parseApplicationParams = (appParams = "") => {
 	return appParams.split(";").map((v) => {
 		const { name, value } = v.split("=", 2)
-		return createHelmParam(name, value)
+		info(`name=${name};value=${value}`)
+		return { "name": name, "value": value }
 	})
 }
 
 const generateSpecs = (inputs = getInputs()) => {
-	helmParameters = JSON.stringify(parseApplicationParams(inputs.applicationParams))
+	helmParameters = parseApplicationParams(inputs.applicationParams)
 	return {
 		"metadata": { "name": `${inputs.applicationName}`, "namespace": "default" },
 		"spec": {

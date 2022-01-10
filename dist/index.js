@@ -8530,20 +8530,11 @@ const getInputs = () => {
 
 const generateOpts = (method = "", bearerToken = "", bodyObj) => {
 	if (method == "delete" || method == "get") {
-		return {
-			method, header: { "Authorization": `Bearer ${bearerToken}` }
-		}
+		return { method, header: { "Authorization": `Bearer ${bearerToken}` } }
+	} else if (bodyObj == null) {
+		return { method, headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` } }
 	}
-	const return_value = {
-		method,
-		headers: {
-			"Content-Type": "application/json",
-			"Authorization": `Bearer ${bearerToken}`
-		},
-		body: JSON.stringify(bodyObj)
-	}
-	info(JSON.stringify(return_value))
-	return return_value
+	return { method, body: JSON.stringify(bodyObj), headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` }, }
 }
 
 const checkResponse = (response) => {
@@ -8554,7 +8545,7 @@ const checkResponse = (response) => {
 }
 
 const syncApplication = (inputs = getInputs()) => {
-	fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}/sync`, generateOpts("get", inputs.token, null))
+	fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}/sync`, generateOpts("post", inputs.token, null))
 		.then(checkResponse)
 		.catch(err => setFailed(err.message))
 }

@@ -77,7 +77,7 @@ const checkReady = (inputs = getInputs(), retry = inputs.maxRetry) => {
 			if (status != "Healthy" && retry > 0) {
 				setTimeout(() => {checkReady(inputs, retry - 1)}, inputs.tts * 1000)
 			} else if (status != "Healthy" && retry == 0) {
-				throw new Error(`[SYNC] All retries done without success`)
+				throw new Error(`[SYNC] ${inputs.applicationName} was unable to be fully synced after ${inputs.maxRetry} retries. Take a look at ${inputs.endpoint}/applications/${inputs.applicationName}`)
 			}
 		})
 		.catch(err => setFailed(err))

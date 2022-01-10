@@ -8492,33 +8492,20 @@ const getInputs = () => {
 	try {
 		const token = getInput("argocdToken", { required: true })
 		const endpoint = getInput("argocdEndpoint", { required: true })
-		info(`endpoint=${endpoint}`)
 		const applicationName = getInput("applicationName", { required: true })
-		info(`applicationName=${applicationName}`)
 		const helmRepoUrl = getInput("helmRepoUrl", { required: true })
-		info(`helmRepoUrl=${helmRepoUrl}`)
 		const helmChartVersion = getInput("helmChartVersion", { required: true })
-		info(`helmChartVersion=${helmChartVersion}`)
 		const helmChartName = getInput("helmChartName", { required: true })
-		info(`helmChartName=${helmChartName}`)
 
 		//Non required values
 		const applicationNamespace = getInput("applicationNamespace") || "default"
-		info(`applicationNamespace=${applicationNamespace}`)
 		const applicationProject = getInput("applicationProject")
-		info(`applicationProject=${applicationProject}`)
 		const applicationParams = getInput("applicationParams")
-		info(`applicationParams=${applicationParams}`)
 		const action = getInput("actionName") || "create"
-		info(`action=${action}`)
 		const maxRetry = getInput("maxRetry") || "5"
-		info(`maxRetry=${maxRetry}`)
 		const tts = getInput("tts") || "10"
-		info(`tts=${tts}`)
 		const destClusterName = getInput("destClusterName")
-		info(`destClusterName=${destClusterName}`)
 		const doSync = getBooleanInput("doSync")
-		info(`doSync=${doSync}`)
 
 		return {
 			token,
@@ -8541,14 +8528,17 @@ const getInputs = () => {
 	}
 }
 
-const generateOpts = (method = "", bodyObj) => {
-	if (method != "delete") {
-		return { method }
+const generateOpts = (method = "", bearerToken = "", bodyObj) => {
+	if (method == "delete" && method == "get") {
+		return {
+			method, header: { "Authorization": `Bearer ${bearerToken}` }
+		}
 	}
 	const return_value = {
 		method,
 		headers: {
-			"Content-Type": "application/json"
+			"Content-Type": "application/json",
+			"Authorization": `Bearer ${bearerToken}`
 		},
 		body: JSON.stringify(bodyObj)
 	}
@@ -8564,7 +8554,7 @@ const checkResponse = (response) => {
 }
 
 const syncApplication = (inputs = getInputs()) => {
-	fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}/sync`)
+	fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}/sync`, generateOpts("get", inputs.token, null))
 		.then(r => r.json())
 		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))
 		.catch(err => setFailed(err.message))
@@ -8574,7 +8564,7 @@ const createApplication = (inputs = getInputs()) => {
 	specs = generateSpecs(inputs)
 	info("specs=" + JSON.stringify(specs))
 	info(`Sending request to ${inputs.endpoint}/api/v1/applications`)
-	return fetch.default(`${inputs.endpoint}/api/v1/applications`, generateOpts("post", specs))
+	return fetch.default(`${inputs.endpoint}/api/v1/applications`, generateOpts("post", inputs.token, specs))
 		.then(checkResponse)
 		.then(r => r.json())
 		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))
@@ -8582,7 +8572,7 @@ const createApplication = (inputs = getInputs()) => {
 }
 
 const readApplication = (inputs = getInputs()) => {
-	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
+	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("get", inputs.token, null))
 		.then((r) => r.json())
 		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))
 		.catch(err => setFailed(err))
@@ -8590,13 +8580,13 @@ const readApplication = (inputs = getInputs()) => {
 
 const updateApplication = (inputs = getInputs()) => {
 	specs = generateSpecs(inputs)
-	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("patch", specs))
+	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("patch", inputs.token, specs))
 		.then(checkResponse)
 		.catch(err => setFailed(err))
 }
 
 const deleteApplication = (inputs = getInputs()) => {
-	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("delete", null))
+	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("delete", inputs.token, null))
 		.then(checkResponse)
 		.catch(err => setFailed(err))
 }

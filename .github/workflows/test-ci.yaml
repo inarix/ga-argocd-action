@@ -26,7 +26,7 @@ jobs:
           helmChartVersion: "0.5.0"
           helmRepoUrl: "https://charts.inarix.com"
           actionName: "create"
-          applicationParams: "app.channelId=987654321;app.giphyToken=abcef;app.slackToken=${{secrets.SLACK_API_TOKEN}};db.host=localhost:5432;db.user=admin;db.password=admin;db.name=simba;ingress.hosts[0].host=simba2.inarix.com;ingress.tls[0].secretName=simba2-tls"
+          applicationParams: "app.channelId=987654321;app.giphyToken=abcef;app.slackSigningSecret=${{secrets.SLACK_API_TOKEN}};app.slackToken=${{secrets.SLACK_API_TOKEN}};db.host=localhost:5432;db.user=admin;db.password=admin;db.name=simba;ingress.hosts[0].host=simba2.inarix.com;ingress.tls[0].secretName=simba2-tls"
       - name: flush result
         run: echo "Result=$(echo ${{steps.createApp.outputs.application}} | jq)"
   read-application:
@@ -44,6 +44,7 @@ jobs:
           argocdEndpoint: "https://argocd.inarix.com"
           applicationName: "test-application-simba"
           actionName: "get"
+          doSync: false
       - name: flush result
         run: echo "Result=$(echo ${{steps.readApplication.outputs.application}} | jq)"
   update-application:
@@ -68,3 +69,4 @@ jobs:
           argocdEndpoint: "https://argocd.inarix.com"
           applicationName: "test-application-simba"
           actionName: "delete"
+          doSync: false

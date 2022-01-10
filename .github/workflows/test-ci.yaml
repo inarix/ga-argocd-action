@@ -26,7 +26,7 @@ jobs:
           helmChartVersion: "9.7.0"
           helmRepoUrl: "https://charts.bitnami.com/bitnami"
           actionName: "create"
-          applicationParams: "image.debug=true;replicaCount=2"
+          applicationParams: "image.debug=true;replicaCount=2;service.type=ClusterIP"
       - name: flush result
         run: echo "Result=$(echo ${{steps.createApp.outputs.application}} | jq)"
   read-application:

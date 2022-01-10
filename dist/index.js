@@ -8554,38 +8554,48 @@ const generateOpts = (method = "", bodyObj) => {
 	}
 }
 
+const checkResponse = (response) => {
+	if (response.status >= 200 && response.status < 300) {
+		return response;
+	}
+	throw new Error(response.statusText);
+}
+
 const syncApplication = (inputs = getInputs()) => {
 	fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}/sync`)
-		.catch(err => setFailed(err.message))
 		.then(r => r.json())
 		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))
+		.catch(err => setFailed(err.message))
 }
 
 const createApplication = (inputs = getInputs()) => {
 	specs = generateSpecs(inputs)
 	info("specs=" + JSON.stringify(specs))
 	info(`Sending request to ${inputs.endpoint}/api/v1/applications`)
-	return fetch.default(`${inputs.endpoint}/api/v1/applications`, generateOpts("POST", specs))
-		.catch(err => setFailed(err))
+	return fetch.default(`${inputs.endpoint}/api/v1/applications`, generateOpts("post", specs))
+		.then(checkResponse)
 		.then(r => r.json())
 		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))
+		.catch(err => setFailed(err))
 }
 
 const readApplication = (inputs = getInputs()) => {
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
-		.catch(err => setFailed(err))
 		.then((r) => r.json())
 		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))
+		.catch(err => setFailed(err))
 }
 
 const updateApplication = (inputs = getInputs()) => {
 	specs = generateSpecs(inputs)
-	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("PATCH", specs))
+	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("patch", specs))
+		.then(checkResponse)
 		.catch(err => setFailed(err))
 }
 
 const deleteApplication = (inputs = getInputs()) => {
-	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("DELETE", null))
+	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("delete", null))
+		.then(checkResponse)
 		.catch(err => setFailed(err))
 }
 

@@ -8599,6 +8599,7 @@ const deleteApplication = (inputs = getInputs()) => {
 	info(`[DELETE] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("delete", inputs.token, null))
 		.then(checkResponse)
+		.then(() => setOutput("application", JSON.stringify({ deleted: true })))
 		.catch(err => setFailed(err))
 }
 
@@ -8646,8 +8647,7 @@ const main = () => {
 			return deleteApplication(inputs)
 		case "get":
 		case "read":
-			prom = readApplication(inputs)
-			break
+			return readApplication(inputs)
 		case "create":
 			prom = createApplication(inputs)
 			break

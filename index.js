@@ -68,8 +68,7 @@ const checkResponse = (response) => {
 
 const syncApplication = (inputs = getInputs()) => {
 	fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}/sync`, generateOpts("get", inputs.token, null))
-		.then(r => r.json())
-		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))
+		.then(checkResponse)
 		.catch(err => setFailed(err.message))
 }
 

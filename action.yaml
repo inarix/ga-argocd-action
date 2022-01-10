@@ -50,7 +50,6 @@ inputs:
     default: "true"
   onlySync:
     required: false
-    default: "false"
     description: "Only sync given application"
 outputs:
   application:

@@ -1,0 +1,85 @@
+# File              : deploy_model.yaml
+# Author            : Alexandre Saison <alexandre.saison@inarix.com>
+# Date              : 29.01.2021
+# Last Modified Date: 31.05.2021
+# Last Modified By  : Alexandre Saison <alexandre.saison@inarix.com>
+name: Test full CI
+on:
+  push:
+    branches: ["master", "dev"]
+jobs:
+  create-application:
+    name: create test application
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: argocd-create-aplication
+        id: createApp
+        uses: ./
+        with:
+          argocdToken: ${{secrets.ARGOCD_TOKEN}}
+          argocdEndpoint: "https://argocd.inarix.com"
+          destClusterName: "in-cluster"
+          applicationName: "test-application-simba"
+          helmChartName: "simba"
+          helmChartVersion: "0.5.0"
+          helmRepoUrl: "https://charts.inarix.com"
+          actionName: "create"
+          applicationParams: "app.channelId=987654321;app.giphyToken=abcef;app.slackSigningSecret=${{secrets.SLACK_API_TOKEN}};app.slackToken=${{secrets.SLACK_API_TOKEN}};db.host=localhost:5432;db.user=admin;db.password=admin;db.name=simba;ingress.hosts[0].host=simba2.inarix.com;ingress.tls[0].secretName=simba2-tls"
+      - name: flush result
+        run: echo "Result=$(echo ${{steps.createApp.outputs.application}} | jq)"
+  read-application:
+    needs: create-application
+    name: read/get application
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: argocd-create-aplication
+        id: readApplication
+        uses: ./
+        with:
+          argocdToken: ${{secrets.ARGOCD_TOKEN}}
+          argocdEndpoint: "https://argocd.inarix.com"
+          applicationName: "test-application-simba"
+          actionName: "get"
+      - name: flush result
+        run: echo "Result=$(echo ${{steps.readApplication.outputs.application}} | jq)"
+  update-application:
+    name: update created application
+    needs: read-application
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: argocd-create-aplication
+        id: updateApp
+        uses: ./
+        with:
+          argocdToken: ${{secrets.ARGOCD_TOKEN}}
+          argocdEndpoint: "https://argocd.inarix.com"
+          destClusterName: "in-cluster"
+          applicationName: "test-application-simba"
+          helmChartName: "simba"
+          helmChartVersion: "0.6.1"
+          helmRepoUrl: "https://charts.inarix.com"
+          actionName: "update"
+          applicationParams: "image.tag=latest"
+      - name: flush result
+        run: echo "Result=$(echo ${{steps.updateApp.outputs.application}} | jq)"
+  delete-application:
+    name: delete created application
+    needs: update-application
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: argocd-delete-aplication
+        id: deleteApp
+        uses: ./
+        with:
+          argocdToken: ${{secrets.ARGOCD_TOKEN}}
+          argocdEndpoint: "https://argocd.inarix.com"
+          applicationName: "test-application-simba"
+          actionName: "delete"

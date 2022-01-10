@@ -27,8 +27,6 @@ jobs:
           helmRepoUrl: "https://charts.bitnami.com/bitnami"
           actionName: "create"
           applicationParams: "image.debug=true;replicaCount=2;service.type=ClusterIP"
-      - name: flush result
-        run: echo "Result=$(echo ${{steps.createApp.outputs.application}} | jq)"
   read-application:
     needs: create-application
     name: read/get application
@@ -66,8 +64,6 @@ jobs:
           helmRepoUrl: "https://charts.bitnami.com/bitnami"
           actionName: "update"
           applicationParams: "image.debug=false;replicaCount=1"
-      - name: flush result
-        run: echo "Result=$(echo ${{steps.updateApp.outputs.application}} | jq)"
   delete-application:
     name: delete created application
     needs: update-application

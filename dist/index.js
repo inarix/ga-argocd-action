@@ -8542,16 +8542,18 @@ const getInputs = () => {
 }
 
 const generateOpts = (method = "", bodyObj) => {
-	if (method != "DELETE") {
+	if (method != "delete") {
 		return { method }
 	}
-	return {
+	const return_value = {
 		method,
 		headers: {
 			"Content-Type": "application/json"
 		},
 		body: JSON.stringify(bodyObj)
 	}
+	info(return_value)
+	return return_value
 }
 
 const checkResponse = (response) => {

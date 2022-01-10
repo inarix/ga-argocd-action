@@ -1,5 +1,8 @@
 name: "ga-argocd-action"
 description: "GithubAction which handle base CRUD on given application name"
+branding:
+  color: yellow
+  icon: activity
 inputs:
   actionName:
     description: "One of create, read|get, update, delete"
@@ -39,7 +42,7 @@ inputs:
   maxRetry:
     description: "Max retry of the ArgoCD application creation"
     required: false
-    default: "15"
+    default: "5"
   tts:
     description: "Time To Sleep before each application status check"
     default: "10"

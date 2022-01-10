@@ -21,12 +21,12 @@ jobs:
           argocdToken: ${{secrets.ARGOCD_TOKEN}}
           argocdEndpoint: "https://argocd.inarix.com"
           destClusterName: "in-cluster"
-          applicationName: "test-application-simba"
-          helmChartName: "simba"
-          helmChartVersion: "0.5.0"
-          helmRepoUrl: "https://charts.inarix.com"
+          applicationName: "nginx"
+          helmChartName: "nginx"
+          helmChartVersion: "9.7.0"
+          helmRepoUrl: "https://charts.bitnami.com/bitnami"
           actionName: "create"
-          applicationParams: "app.channelId=987654321;app.giphyToken=abcef;app.slackSigningSecret=${{secrets.SLACK_API_TOKEN}};app.slackToken=${{secrets.SLACK_API_TOKEN}};db.host=localhost:5432;db.user=admin;db.password=admin;db.name=simba;ingress.hosts[0].host=simba2.inarix.com;ingress.tls[0].secretName=simba2-tls"
+          applicationParams: "image.debug=true;replicaCount=2"
       - name: flush result
         run: echo "Result=$(echo ${{steps.createApp.outputs.application}} | jq)"
   read-application:
@@ -42,7 +42,7 @@ jobs:
         with:
           argocdToken: ${{secrets.ARGOCD_TOKEN}}
           argocdEndpoint: "https://argocd.inarix.com"
-          applicationName: "test-application-simba"
+          applicationName: "nginx"
           actionName: "get"
       - name: flush result
         run: echo "Result=$(echo ${{steps.readApplication.outputs.application}} | jq)"
@@ -60,12 +60,12 @@ jobs:
           argocdToken: ${{secrets.ARGOCD_TOKEN}}
           argocdEndpoint: "https://argocd.inarix.com"
           destClusterName: "in-cluster"
-          applicationName: "test-application-simba"
-          helmChartName: "simba"
-          helmChartVersion: "0.6.1"
-          helmRepoUrl: "https://charts.inarix.com"
+          applicationName: "nginx"
+          helmChartName: "nginx"
+          helmChartVersion: "9.7.0"
+          helmRepoUrl: "https://charts.bitnami.com/bitnami"
           actionName: "update"
-          applicationParams: "image.tag=latest"
+          applicationParams: "image.debug=false;replicaCount=1"
       - name: flush result
         run: echo "Result=$(echo ${{steps.updateApp.outputs.application}} | jq)"
   delete-application:
@@ -81,5 +81,5 @@ jobs:
         with:
           argocdToken: ${{secrets.ARGOCD_TOKEN}}
           argocdEndpoint: "https://argocd.inarix.com"
-          applicationName: "test-application-simba"
+          applicationName: "nginx"
           actionName: "delete"

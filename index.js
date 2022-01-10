@@ -67,6 +67,22 @@ const generateOpts = (method = "", bearerToken = "", bodyObj) => {
 	return { method, body: JSON.stringify(bodyObj), headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` }, }
 }
 
+const checkReady = (inputs = getInputs(), retry = inputs.maxRetry) => {
+	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("get", inputs.token, null))
+		.then(checkResponse)
+		.then(r => r.json())
+		.then(jsonResponse => {
+			const status = jsonResponse.status.health.status
+			info(`Application ${inputs.applicationName} has status ${status} (Left retries ${retry})`)
+			if (status != "Healthy" && retry > 0) {
+				setTimeout(() => {checkReady(inputs, retry - 1)}, inputs.tts * 1000)
+			} else if (status != "Healthy" && retry == 0) {
+				throw new Error(`[SYNC] ${inputs.applicationName} was unable to be fully synced after ${inputs.maxRetry} retries. Take a look at ${inputs.endpoint}/applications/${inputs.applicationName}`)
+			}
+		})
+		.catch(err => setFailed(err))
+}
+
 const checkResponse = (response) => {
 	info(`Response from ${response.url} [${response.status}] ${response.statusText}`)
 	if (response.status >= 200 && response.status < 300) {
@@ -78,6 +94,7 @@ const checkResponse = (response) => {
 const syncApplication = (inputs = getInputs()) => {
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}/sync`, generateOpts("post", inputs.token, null))
 		.then(checkResponse)
+		.then(() => checkReady(inputs))
 		.catch(err => setFailed(err.message))
 }
 

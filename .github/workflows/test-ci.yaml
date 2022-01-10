@@ -23,7 +23,7 @@ jobs:
           destClusterName: "in-cluster"
           applicationName: "test-application-simba"
           helmChartName: "simba"
-          helmChartVersion: "0.6.1"
+          helmChartVersion: "0.5.0"
           helmRepoUrl: "https://charts.inarix.com"
           actionName: "create"
           applicationParams: "app.channelId=987654321;app.giphyToken=abcef;app.slackToken=${{secrets.SLACK_API_TOKEN}};db.host=localhost:5432;db.user=admin;db.password=admin;db.name=simba;ingress.hosts[0].host=simba2.inarix.com;ingress.tls[0].secretName=simba2-tls"

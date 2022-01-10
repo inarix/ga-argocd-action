@@ -8529,7 +8529,7 @@ const getInputs = () => {
 }
 
 const generateOpts = (method = "", bearerToken = "", bodyObj) => {
-	if (method == "delete" && method == "get") {
+	if (method == "delete" || method == "get") {
 		return {
 			method, header: { "Authorization": `Bearer ${bearerToken}` }
 		}

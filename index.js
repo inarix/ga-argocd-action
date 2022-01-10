@@ -1,4 +1,4 @@
-const { getInput, info, setFailed, setOutput, getBooleanInput } = require("@actions/core")
+const { getInput, info, setFailed, setOutput, getBooleanInput, debug, group } = require("@actions/core")
 const fetch = require("node-fetch")
 
 const getInputs = () => {
@@ -63,6 +63,7 @@ const syncApplication = (inputs = getInputs()) => {
 
 const createApplication = (inputs = getInputs()) => {
 	specs = generateSpecs(inputs)
+	info("specs=" + JSON.stringify(specs))
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, { method: "POST", body: JSON.stringify(specs) })
 		.catch(err => setFailed(err.messsage))
 		.then(r => r.json())
@@ -122,7 +123,6 @@ const generateSpecs = (inputs = getInputs()) => {
 
 const main = () => {
 	inputs = getInputs()
-	info(JSON.stringify(inputs))
 	switch (inputs.action) {
 		case "delete":
 			deleteApplication(inputs)

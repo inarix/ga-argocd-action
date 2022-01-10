@@ -55,7 +55,7 @@ const generateOpts = (method = "", bearerToken = "", bodyObj) => {
 		},
 		body: JSON.stringify(bodyObj)
 	}
-	info(return_value)
+	info(JSON.stringify(return_value))
 	return return_value
 }
 
@@ -75,7 +75,6 @@ const syncApplication = (inputs = getInputs()) => {
 
 const createApplication = (inputs = getInputs()) => {
 	specs = generateSpecs(inputs)
-	info("specs=" + JSON.stringify(specs))
 	info(`Sending request to ${inputs.endpoint}/api/v1/applications`)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications`, generateOpts("post", inputs.token, specs))
 		.then(checkResponse)
@@ -85,6 +84,7 @@ const createApplication = (inputs = getInputs()) => {
 }
 
 const readApplication = (inputs = getInputs()) => {
+	info(`Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("get", inputs.token, null))
 		.then((r) => r.json())
 		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))

@@ -8565,7 +8565,7 @@ const createApplication = (inputs = getInputs()) => {
 	specs = generateSpecs(inputs)
 	info("specs=" + JSON.stringify(specs))
 	info(`Sending request to ${inputs.endpoint}/api/v1/applications`)
-	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("POST", specs))
+	return fetch.default(`${inputs.endpoint}/api/v1/applications`, generateOpts("POST", specs))
 		.catch(err => setFailed(err))
 		.then(r => r.json())
 		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))

@@ -73,9 +73,9 @@ const checkReady = (inputs = getInputs(), retry = inputs.maxRetry) => {
 		.then(r => r.json())
 		.then(jsonResponse => {
 			const status = jsonResponse.status.health.status
-			info(`Application ${inputs.applicationName} has status ${status}`)
+			info(`Application ${inputs.applicationName} has status ${status} (Left retries ${retry})`)
 			if (status != "Healthy" && retry > 0) {
-				setTimeout(() => checkReady(inputs, retry - 1), inputs.tts * 1000)
+				setTimeout(() => {checkReady(inputs, retry - 1)}, inputs.tts * 1000)
 			} else if (status != "Healthy" && retry == 0) {
 				throw new Error(`[SYNC] All retries done without success`)
 			}

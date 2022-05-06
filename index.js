@@ -7,6 +7,7 @@ const getInputs = () => {
 		const token = getInput("argocdToken", { required: true })
 		const endpoint = getInput("argocdEndpoint", { required: true })
 		const applicationName = getInput("applicationName", { required: true })
+		const argocdApplicationNamespace = getInput("argocdApplicationNamespace")
 
 		//Helm values
 		const helmRepoUrl = getInput("helmRepoUrl")
@@ -17,6 +18,7 @@ const getInputs = () => {
 		const applicationNamespace = getInput("applicationNamespace") || "default"
 		const applicationProject = getInput("applicationProject")
 		const applicationParams = getInput("applicationParams")
+		const applicationValueFiles = getInput("applicationValueFiles")
 
 		// Others
 		const maxRetry = getInput("maxRetry") || "5"
@@ -28,12 +30,13 @@ const getInputs = () => {
 		if (
 			(action == "create" || action == "update") &&
 			(applicationParams == ""
+				|| applicationValueFiles == ""
 				|| destClusterName == ""
 				|| helmChartName == ""
 				|| helmChartVersion == ""
 				|| helmRepoUrl == "")
 		) {
-			throw new Error(`You must also provide (applicationParams, destClusterName, helmChartName, helmChartVersion, helmRepoUrl) inputs when using ${action} action`)
+			throw new Error(`You must also provide (applicationParams, applicationValueFiles, destClusterName, helmChartName, helmChartVersion, helmRepoUrl) inputs when using ${action} action`)
 		}
 
 		return {
@@ -41,9 +44,11 @@ const getInputs = () => {
 			endpoint,
 			destClusterName,
 			applicationName,
+			argocdApplicationNamespace,
 			applicationNamespace,
 			applicationProject,
 			applicationParams,
+			applicationValueFiles,
 			helmChartName,
 			helmChartVersion,
 			helmRepoUrl,
@@ -140,19 +145,26 @@ const parseApplicationParams = (appParams = "") => {
 	})
 }
 
+const parseApplicationValueFiles = (valuesFiles = "") => {
+	return valuesFiles.split(';')
+}
+
+
 const generateSpecs = (inputs = getInputs()) => {
 	helmParameters = parseApplicationParams(inputs.applicationParams)
+	helmValuesFiles = parseApplicationValueFiles(inputs.applicationValueFiles)
 	return {
 		metadata: {
 			name: inputs.applicationName,
-			namespace: "default"
+			namespace: inputs.argocdApplicationNamespace
 		},
 		spec: {
 			source: {
 				repoURL: inputs.helmRepoUrl,
 				targetRevision: inputs.helmChartVersion,
 				helm: {
-					parameters: helmParameters
+					parameters: helmParameters,
+					valueFiles: helmValuesFiles
 				},
 				chart: inputs.helmChartName
 			},

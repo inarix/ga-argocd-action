@@ -19,6 +19,10 @@ inputs:
   destClusterName:
     description: "Destination cluster name"
     required: false
+  argocdApplicationNamespace:
+    description: "ArgoCD application namespace"
+    required: false
+    default: "default"
   applicationProject:
     description: "Project name where application should be deployed"
     required: false
@@ -26,6 +30,9 @@ inputs:
   applicationParams:
     description: "Helm parameters of the application to create/update in format 'name=value;name=value;...'"
     required: false
+  applicationValueFiles:
+    description: "Helm chart values files to create/update in format 'values.yaml;values-production.yaml;...'"
+    required: false  
   applicationNamespace:
     description: "Namespace when application is/will be deployed"
     required: false

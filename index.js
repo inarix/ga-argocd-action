@@ -96,6 +96,20 @@ const checkResponse = (response) => {
 	throw new Error(`${response.url} ${response.statusText}`);
 }
 
+const checkDeleteResponse = (response) => {
+	info(`Response from ${response.url} [${response.status}] ${response.statusText}`)
+        if (
+          (response.status >= 200 && response.status < 300) ||
+          response.status == 400 ||
+          response.status == 404
+        ) {
+          return response;
+        }
+	throw new Error(`${response.url} ${response.statusText}`);
+}
+
+
+
 const syncApplication = (inputs = getInputs()) => {
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}/sync`, generateOpts("post", inputs.token, null))
 		.then(checkResponse)
@@ -133,7 +147,7 @@ const updateApplication = (inputs = getInputs()) => {
 const deleteApplication = (inputs = getInputs()) => {
 	info(`[DELETE] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("delete", inputs.token, null))
-		.then(checkResponse)
+		.then(checkDeleteResponse)
 		.then(() => setOutput("application", JSON.stringify({ deleted: true })))
 		.catch(err => setFailed(err))
 }

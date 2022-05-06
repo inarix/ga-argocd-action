@@ -17,11 +17,15 @@ GithubAction which handle base CRUD on given application name
 ###  `helmRepoUrl`
 **Required** Helm repository which holds application chart
 ###  `applicationNamespace`
-Namespace when application is/will be deployed. (default: `"default"`).
+Namespace where application is/will be deployed. (default: `"default"`).
+### `argocdApplicationNamespace`
+Namespace where ArgoCD application is/will be deployed. (default: `"default"`).
 ###  `applicationProject`
 Project name where application should be deployed. (default: `""`)
 ###  `applicationParams`
 Helm parameters of the application to create/update in format 'name=value;name=value;...'. (default: `""`)
+### `applicationValueFiles`
+Helm values files of the application to create/update in format 'values.yaml;values-production.yaml...'. (default: `""`)
 ###  `actionName`
 One of create, read|get, update, delete. (default: `"create"`)
 ###  `maxRetry`
@@ -42,6 +46,7 @@ uses: inarix/ga-argocd-action@v1
 with:
   argocdToken: ${{secrets.ARGOCD_TOKEN}}
   argocdEndpoint: "https://argocd.example.com"
+  argocdApplicationNamespace: "argocd"
   destClusterName: ${{secrets.CLUSTER_NAME}}
   applicationName: "nginx"
   helmChartName: "nginx"
@@ -49,4 +54,5 @@ with:
   helmRepoUrl: "https://charts.bitnami.com/bitnami"
   actionName: "create"
   applicationParams: "image.debug=true;replicaCount=2;nodeSelector.name=prod"
+  applicationValueFiles: "values.yaml;values-staging.yaml"
 ```

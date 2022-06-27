@@ -8555,9 +8555,7 @@ const generateOpts = (method = "", bearerToken = "", bodyObj) => {
 		return { method, headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` } }
 	}
 	payload = { method, body: JSON.stringify(bodyObj), headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` }, }
-	info("Handling payload ", payload.method, payload.headers)
-	debug("generateOps -> ", JSON.stringify(payload))
-	console.log(`The event payload: ${JSON.stringify(payload)}`);
+	console.log(`The event payload: ${JSON.stringify(payload.body)}`);
 	return payload
 }
 
@@ -8605,7 +8603,7 @@ const syncApplication = (inputs = getInputs()) => {
 const createApplication = (inputs = getInputs()) => {
 	specs = generateSpecs(inputs)
 	info(`[CREATE] Sending request to ${inputs.endpoint}/api/v1/applications`)
-	info("[CREATE] specs", specs)
+	console.log("[CREATE] specs", JSON.stringify(specs))
 	return fetch.default(`${inputs.endpoint}/api/v1/applications`, generateOpts("post", inputs.token, specs))
 		.then((response) => checkResponse("POST", response))
 		.then(r => r.json())

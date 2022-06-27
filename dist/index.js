@@ -8650,51 +8650,26 @@ const parseApplicationValueFiles = (valuesFiles = "") => {
 const generateSpecs = (inputs = getInputs()) => {
 	helmParameters = parseApplicationParams(inputs.applicationParams)
 	helmValuesFiles = parseApplicationValueFiles(inputs.applicationValueFiles)
-	if (inputs.applicationValueFiles != "") {
-		return {
-			metadata: {
-				name: inputs.applicationName,
-				namespace: inputs.argocdApplicationNamespace
+	return {
+		metadata: {
+			name: inputs.applicationName,
+			namespace: inputs.argocdApplicationNamespace
+		},
+		spec: {
+			source: {
+				repoURL: inputs.helmRepoUrl,
+				targetRevision: inputs.helmChartVersion,
+				helm: {
+					parameters: helmParameters,
+					valueFiles: helmValuesFiles
+				},
+				chart: inputs.helmChartName
 			},
-			spec: {
-				source: {
-					repoURL: inputs.helmRepoUrl,
-					targetRevision: inputs.helmChartVersion,
-					helm: {
-						parameters: helmParameters,
-						valueFiles: helmValuesFiles
-					},
-					chart: inputs.helmChartName
-				},
-				destination: {
-					name: inputs.destClusterName, namespace: inputs.applicationNamespace
-				},
-				project: inputs.applicationProject,
-				syncPolicy: {}
-			}
-		}
-
-	} else {
-		return {
-			metadata: {
-				name: inputs.applicationName,
-				namespace: inputs.argocdApplicationNamespace
+			destination: {
+				name: inputs.destClusterName, namespace: inputs.applicationNamespace
 			},
-			spec: {
-				source: {
-					repoURL: inputs.helmRepoUrl,
-					targetRevision: inputs.helmChartVersion,
-					helm: {
-						parameters: helmParameters,
-					},
-					chart: inputs.helmChartName
-				},
-				destination: {
-					name: inputs.destClusterName, namespace: inputs.applicationNamespace
-				},
-				project: inputs.applicationProject,
-				syncPolicy: {}
-			}
+			project: inputs.applicationProject,
+			syncPolicy: {}
 		}
 	}
 }

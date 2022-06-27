@@ -29,11 +29,12 @@ const getInputs = () => {
 
 		if (
 			(action == "create" || action == "update") &&
-			(applicationParams == "" && applicationValueFiles == "")
-			|| destClusterName == ""
-			|| helmChartName == ""
-			|| helmChartVersion == ""
-			|| helmRepoUrl == "") {
+			((applicationParams == "" && applicationValueFiles == "")
+				|| destClusterName == ""
+				|| helmChartName == ""
+				|| helmChartVersion == ""
+				|| helmRepoUrl == "")
+		) {
 			throw new Error(`You must also provide (applicationParams, applicationValueFiles, destClusterName, helmChartName, helmChartVersion, helmRepoUrl) inputs when using ${action} action`)
 		}
 

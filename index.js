@@ -1,4 +1,4 @@
-const { getInput, info, setFailed, setOutput, getBooleanInput } = require("@actions/core")
+const { getInput, info, setFailed, setOutput, getBooleanInput, debug } = require("@actions/core")
 const fetch = require("node-fetch")
 
 const getInputs = () => {
@@ -65,11 +65,10 @@ const generateOpts = (method = "", bearerToken = "", bodyObj) => {
 	if (method == "delete" || method == "get") {
 		return { method, headers: { "Authorization": `Bearer ${bearerToken}` } }
 	} else if (bodyObj == null) {
-		info("ENTER BODY IS NULL")
 		return { method, headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` } }
 	}
-	info("ENTER BODY IS NOT NULL -> ", bodyObj)
-	return { method, body: JSON.stringify(bodyObj), headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` }, }
+	payload = { method, body: JSON.stringify(bodyObj), headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` }, }
+	debug("generateOps -> ", JSON.stringify(payload))
 }
 
 const checkReady = (inputs = getInputs(), retry = inputs.maxRetry) => {

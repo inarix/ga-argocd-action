@@ -136,6 +136,7 @@ const readApplication = (inputs = getInputs()) => {
 
 const updateApplication = (inputs = getInputs()) => {
 	info(`[UPDATE] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
+	info("[UPDATE] specs", JSON.stringify(specs))
 	specs = generateSpecs(inputs)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("put", inputs.token, specs))
 		.then((response) => checkResponse("PUT", response))

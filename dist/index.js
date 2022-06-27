@@ -8487,6 +8487,7 @@ var __webpack_exports__ = {};
 (() => {
 const { getInput, info, setFailed, setOutput, getBooleanInput, debug } = __nccwpck_require__(619)
 const fetch = __nccwpck_require__(748)
+const json = JSON
 
 const getInputs = () => {
 	try {
@@ -8623,6 +8624,7 @@ const readApplication = (inputs = getInputs()) => {
 
 const updateApplication = (inputs = getInputs()) => {
 	info(`[UPDATE] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
+	info("[UPDATE] specs", JSON.stringify(specs))
 	specs = generateSpecs(inputs)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("put", inputs.token, specs))
 		.then((response) => checkResponse("PUT", response))

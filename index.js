@@ -87,12 +87,11 @@ const checkReady = (inputs = getInputs(), retry = inputs.maxRetry) => {
 }
 
 const checkResponse = (method, response) => {
-	info(`Response from ${method} request at ${response.url}: [${response.status}] ${response.statusText} `)
-	info("response, ", response)
+	info(`Response from ${method} request at ${response.url}: [${response.status}] ${response.statusText}.`)
 	if ((response.status >= 200 && response.status < 300) || response.status == 400) {
 		return response;
 	}
-	throw new Error(`${response.url} ${response.statusText}`);
+	throw new Error(`${response.url} ${response.statusText}: ${json.stringify(response)}`);
 }
 
 const checkDeleteResponse = (response) => {
@@ -167,26 +166,51 @@ const parseApplicationValueFiles = (valuesFiles = "") => {
 const generateSpecs = (inputs = getInputs()) => {
 	helmParameters = parseApplicationParams(inputs.applicationParams)
 	helmValuesFiles = parseApplicationValueFiles(inputs.applicationValueFiles)
-	return {
-		metadata: {
-			name: inputs.applicationName,
-			namespace: inputs.argocdApplicationNamespace
-		},
-		spec: {
-			source: {
-				repoURL: inputs.helmRepoUrl,
-				targetRevision: inputs.helmChartVersion,
-				helm: {
-					parameters: helmParameters,
-					valueFiles: helmValuesFiles
+	if (inputs.applicationValueFiles != "") {
+		return {
+			metadata: {
+				name: inputs.applicationName,
+				namespace: inputs.argocdApplicationNamespace
+			},
+			spec: {
+				source: {
+					repoURL: inputs.helmRepoUrl,
+					targetRevision: inputs.helmChartVersion,
+					helm: {
+						parameters: helmParameters,
+						valueFiles: helmValuesFiles
+					},
+					chart: inputs.helmChartName
 				},
-				chart: inputs.helmChartName
+				destination: {
+					name: inputs.destClusterName, namespace: inputs.applicationNamespace
+				},
+				project: inputs.applicationProject,
+				syncPolicy: {}
+			}
+		}
+
+	} else {
+		return {
+			metadata: {
+				name: inputs.applicationName,
+				namespace: inputs.argocdApplicationNamespace
 			},
-			destination: {
-				name: inputs.destClusterName, namespace: inputs.applicationNamespace
-			},
-			project: inputs.applicationProject,
-			syncPolicy: {}
+			spec: {
+				source: {
+					repoURL: inputs.helmRepoUrl,
+					targetRevision: inputs.helmChartVersion,
+					helm: {
+						parameters: helmParameters,
+					},
+					chart: inputs.helmChartName
+				},
+				destination: {
+					name: inputs.destClusterName, namespace: inputs.applicationNamespace
+				},
+				project: inputs.applicationProject,
+				syncPolicy: {}
+			}
 		}
 	}
 }

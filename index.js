@@ -114,7 +114,7 @@ const syncApplication = (inputs = getInputs()) => {
 const createApplication = (inputs = getInputs()) => {
 	specs = generateSpecs(inputs)
 	info(`[CREATE] Sending request to ${inputs.endpoint}/api/v1/applications`)
-	info("[CREATE] specs", JSON.stringify(specs))
+	info("[CREATE] specs", specs)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications`, generateOpts("post", inputs.token, specs))
 		.then((response) => checkResponse("POST", response))
 		.then(r => r.json())
@@ -133,8 +133,8 @@ const readApplication = (inputs = getInputs()) => {
 
 const updateApplication = (inputs = getInputs()) => {
 	info(`[UPDATE] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
-	specs = generateSpecs(inputs)
 	info("[UPDATE] specs", JSON.stringify(specs))
+	specs = generateSpecs(inputs)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("put", inputs.token, specs))
 		.then((response) => checkResponse("PUT", response))
 		.catch(err => setFailed(err))

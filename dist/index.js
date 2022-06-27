@@ -8485,7 +8485,7 @@ function fixResponseChunkedTransferBadEnding(request, errorCallback) {
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
-const { getInput, info, setFailed, setOutput, getBooleanInput } = __nccwpck_require__(619)
+const { getInput, info, setFailed, setOutput, getBooleanInput, debug } = __nccwpck_require__(619)
 const fetch = __nccwpck_require__(748)
 
 const getInputs = () => {
@@ -8552,11 +8552,10 @@ const generateOpts = (method = "", bearerToken = "", bodyObj) => {
 	if (method == "delete" || method == "get") {
 		return { method, headers: { "Authorization": `Bearer ${bearerToken}` } }
 	} else if (bodyObj == null) {
-		info("ENTER BODY IS NULL")
 		return { method, headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` } }
 	}
-	info("ENTER BODY IS NOT NULL -> ", bodyObj)
-	return { method, body: JSON.stringify(bodyObj), headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` }, }
+	payload = { method, body: JSON.stringify(bodyObj), headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` }, }
+	debug("generateOps -> ", JSON.stringify(payload))
 }
 
 const checkReady = (inputs = getInputs(), retry = inputs.maxRetry) => {

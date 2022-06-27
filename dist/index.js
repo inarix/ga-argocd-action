@@ -8555,7 +8555,9 @@ const generateOpts = (method = "", bearerToken = "", bodyObj) => {
 		return { method, headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` } }
 	}
 	payload = { method, body: JSON.stringify(bodyObj), headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` }, }
+	info("Handling payload ", payload)
 	debug("generateOps -> ", JSON.stringify(payload))
+	return payload
 }
 
 const checkReady = (inputs = getInputs(), retry = inputs.maxRetry) => {

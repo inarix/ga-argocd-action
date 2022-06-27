@@ -1,5 +1,6 @@
 const { getInput, info, setFailed, setOutput, getBooleanInput, debug, group } = require("@actions/core")
 const fetch = require("node-fetch")
+const json = JSON
 
 const getInputs = () => {
 	try {
@@ -91,7 +92,7 @@ const checkResponse = (method, response) => {
 	if ((response.status >= 200 && response.status < 300) || response.status == 400) {
 		return response;
 	}
-	throw new Error(`${response.url} ${response.statusText}: ${json.stringify(response)}`);
+	throw new Error(`${response.url} ${response.statusText}: ${JSON.stringify(response)}`);
 }
 
 const checkDeleteResponse = (response) => {
@@ -103,7 +104,7 @@ const checkDeleteResponse = (response) => {
 	) {
 		return response;
 	}
-	throw new Error(`${response.url} ${response.statusText}: ${json.stringify(response)}`)
+	throw new Error(`${response.url} ${response.statusText}: ${JSON.stringify(response)}`)
 }
 
 

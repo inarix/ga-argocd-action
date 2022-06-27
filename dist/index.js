@@ -8487,6 +8487,7 @@ var __webpack_exports__ = {};
 (() => {
 const { getInput, info, setFailed, setOutput, getBooleanInput, debug, group } = __nccwpck_require__(619)
 const fetch = __nccwpck_require__(748)
+const json = JSON
 
 const getInputs = () => {
 	try {
@@ -8578,7 +8579,7 @@ const checkResponse = (method, response) => {
 	if ((response.status >= 200 && response.status < 300) || response.status == 400) {
 		return response;
 	}
-	throw new Error(`${response.url} ${response.statusText}: ${json.stringify(response)}`);
+	throw new Error(`${response.url} ${response.statusText}: ${JSON.stringify(response)}`);
 }
 
 const checkDeleteResponse = (response) => {
@@ -8590,7 +8591,7 @@ const checkDeleteResponse = (response) => {
 	) {
 		return response;
 	}
-	throw new Error(`${response.url} ${response.statusText}: ${json.stringify(response)}`)
+	throw new Error(`${response.url} ${response.statusText}: ${JSON.stringify(response)}`)
 }
 
 

@@ -8552,8 +8552,10 @@ const generateOpts = (method = "", bearerToken = "", bodyObj) => {
 	if (method == "delete" || method == "get") {
 		return { method, headers: { "Authorization": `Bearer ${bearerToken}` } }
 	} else if (bodyObj == null) {
+		info("ENTER BODY IS NULL")
 		return { method, headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` } }
 	}
+	info("ENTER BODY IS NOT NULL -> ", bodyObj)
 	return { method, body: JSON.stringify(bodyObj), headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` }, }
 }
 

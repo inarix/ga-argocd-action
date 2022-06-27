@@ -68,7 +68,7 @@ const generateOpts = (method = "", bearerToken = "", bodyObj) => {
 		return { method, headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` } }
 	}
 	payload = { method, body: JSON.stringify(bodyObj), headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` }, }
-	info("Handling payload ", payload)
+	info("Handling payload ", payload.method, payload.headers)
 	debug("generateOps -> ", JSON.stringify(payload))
 	return payload
 }

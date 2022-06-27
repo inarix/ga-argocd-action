@@ -43,7 +43,7 @@ jobs:
           applicationName: "nginx"
           actionName: "get"
       - name: flush result
-        run: echo "Result=$(echo ${{steps.readApplication.outputs.application}} | jq)"
+        run: echo $(echo "${{steps.readApplication.outputs.application}}" | jq)'
   update-application:
     name: update created application
     needs: read-application

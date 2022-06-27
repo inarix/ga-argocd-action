@@ -8485,9 +8485,8 @@ function fixResponseChunkedTransferBadEnding(request, errorCallback) {
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
-const { getInput, info, setFailed, setOutput, getBooleanInput, debug, group } = __nccwpck_require__(619)
+const { getInput, info, setFailed, setOutput, getBooleanInput } = __nccwpck_require__(619)
 const fetch = __nccwpck_require__(748)
-const json = JSON
 
 const getInputs = () => {
 	try {
@@ -8495,7 +8494,6 @@ const getInputs = () => {
 		const token = getInput("argocdToken", { required: true })
 		const endpoint = getInput("argocdEndpoint", { required: true })
 		const applicationName = getInput("applicationName", { required: true })
-		const argocdApplicationNamespace = getInput("argocdApplicationNamespace")
 
 		//Helm values
 		const helmRepoUrl = getInput("helmRepoUrl")
@@ -8503,6 +8501,7 @@ const getInputs = () => {
 		const helmChartName = getInput("helmChartName")
 
 		//Application relatives values
+		const argocdApplicationNamespace = getInput("argocdApplicationNamespace") || "default"
 		const applicationNamespace = getInput("applicationNamespace") || "default"
 		const applicationProject = getInput("applicationProject")
 		const applicationParams = getInput("applicationParams")
@@ -8584,17 +8583,13 @@ const checkResponse = (method, response) => {
 
 const checkDeleteResponse = (response) => {
 	info(`Response from ${response.url} [${response.status}] ${response.statusText}`)
-	if (
-		(response.status >= 200 && response.status < 300) ||
-		response.status == 400 ||
-		response.status == 404
-	) {
+	if ((response.status >= 200 && response.status < 300)
+		|| response.status == 400
+		|| response.status == 404) {
 		return response;
 	}
 	throw new Error(`${response.url} ${response.statusText}: ${JSON.stringify(response)}`)
 }
-
-
 
 const syncApplication = (inputs = getInputs()) => {
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}/sync`, generateOpts("post", inputs.token, null))
@@ -8606,6 +8601,7 @@ const syncApplication = (inputs = getInputs()) => {
 const createApplication = (inputs = getInputs()) => {
 	specs = generateSpecs(inputs)
 	info(`[CREATE] Sending request to ${inputs.endpoint}/api/v1/applications`)
+	info("[CREATE] specs", JSON.stringify(specs))
 	return fetch.default(`${inputs.endpoint}/api/v1/applications`, generateOpts("post", inputs.token, specs))
 		.then((response) => checkResponse("POST", response))
 		.then(r => r.json())
@@ -8625,7 +8621,7 @@ const readApplication = (inputs = getInputs()) => {
 const updateApplication = (inputs = getInputs()) => {
 	info(`[UPDATE] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 	specs = generateSpecs(inputs)
-	info["[UPDATE] specs,", specs]
+	info("[UPDATE] specs", JSON.stringify(specs))
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("put", inputs.token, specs))
 		.then((response) => checkResponse("PUT", response))
 		.catch(err => setFailed(err))

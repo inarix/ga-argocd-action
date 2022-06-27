@@ -8485,9 +8485,8 @@ function fixResponseChunkedTransferBadEnding(request, errorCallback) {
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
-const { getInput, info, setFailed, setOutput, getBooleanInput, debug } = __nccwpck_require__(619)
+const { getInput, info, setFailed, setOutput, getBooleanInput } = __nccwpck_require__(619)
 const fetch = __nccwpck_require__(748)
-const json = JSON
 
 const getInputs = () => {
 	try {
@@ -8605,7 +8604,6 @@ const syncApplication = (inputs = getInputs()) => {
 const createApplication = (inputs = getInputs()) => {
 	specs = generateSpecs(inputs)
 	info(`[CREATE] Sending request to ${inputs.endpoint}/api/v1/applications`)
-	console.log("[CREATE] specs", JSON.stringify(specs))
 	return fetch.default(`${inputs.endpoint}/api/v1/applications`, generateOpts("post", inputs.token, specs))
 		.then((response) => checkResponse("POST", response))
 		.then(r => r.json())
@@ -8624,7 +8622,6 @@ const readApplication = (inputs = getInputs()) => {
 
 const updateApplication = (inputs = getInputs()) => {
 	info(`[UPDATE] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
-	info("[UPDATE] specs", JSON.stringify(specs))
 	specs = generateSpecs(inputs)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("put", inputs.token, specs))
 		.then((response) => checkResponse("PUT", response))

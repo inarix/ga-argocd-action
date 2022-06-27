@@ -42,8 +42,6 @@ jobs:
           argocdEndpoint: "https://argocd.inarix.com"
           applicationName: "nginx"
           actionName: "get"
-      - name: flush result
-        run: echo $(echo "${{steps.readApplication.outputs.application}}" | jq)'
   update-application:
     name: update created application
     needs: read-application

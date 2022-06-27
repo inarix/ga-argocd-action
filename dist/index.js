@@ -8494,6 +8494,7 @@ const getInputs = () => {
 		const token = getInput("argocdToken", { required: true })
 		const endpoint = getInput("argocdEndpoint", { required: true })
 		const applicationName = getInput("applicationName", { required: true })
+		const argocdApplicationNamespace = getInput("argocdApplicationNamespace")
 
 		//Helm values
 		const helmRepoUrl = getInput("helmRepoUrl")
@@ -8504,6 +8505,7 @@ const getInputs = () => {
 		const applicationNamespace = getInput("applicationNamespace") || "default"
 		const applicationProject = getInput("applicationProject")
 		const applicationParams = getInput("applicationParams")
+		const applicationValueFiles = getInput("applicationValueFiles")
 
 		// Others
 		const maxRetry = getInput("maxRetry") || "5"
@@ -8514,13 +8516,12 @@ const getInputs = () => {
 
 		if (
 			(action == "create" || action == "update") &&
-			(applicationParams == ""
-				|| destClusterName == ""
-				|| helmChartName == ""
-				|| helmChartVersion == ""
-				|| helmRepoUrl == "")
-		) {
-			throw new Error(`You must also provide (applicationParams, destClusterName, helmChartName, helmChartVersion, helmRepoUrl) inputs when using ${action} action`)
+			(applicationParams == "" && applicationValueFiles == "")
+			|| destClusterName == ""
+			|| helmChartName == ""
+			|| helmChartVersion == ""
+			|| helmRepoUrl == "") {
+			throw new Error(`You must also provide (applicationParams, applicationValueFiles, destClusterName, helmChartName, helmChartVersion, helmRepoUrl) inputs when using ${action} action`)
 		}
 
 		return {
@@ -8528,9 +8529,11 @@ const getInputs = () => {
 			endpoint,
 			destClusterName,
 			applicationName,
+			argocdApplicationNamespace,
 			applicationNamespace,
 			applicationProject,
 			applicationParams,
+			applicationValueFiles,
 			helmChartName,
 			helmChartVersion,
 			helmRepoUrl,
@@ -8556,13 +8559,13 @@ const generateOpts = (method = "", bearerToken = "", bodyObj) => {
 
 const checkReady = (inputs = getInputs(), retry = inputs.maxRetry) => {
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("get", inputs.token, null))
-		.then(checkResponse)
+		.then((response) => checkResponse("GET", response))
 		.then(r => r.json())
 		.then(jsonResponse => {
 			const status = jsonResponse.status.health.status
 			info(`Application ${inputs.applicationName} has status ${status} (Left retries ${retry})`)
 			if (status != "Healthy" && retry > 0) {
-				setTimeout(() => {checkReady(inputs, retry - 1)}, inputs.tts * 1000)
+				setTimeout(() => { checkReady(inputs, retry - 1) }, inputs.tts * 1000)
 			} else if (status != "Healthy" && retry == 0) {
 				throw new Error(`[SYNC] ${inputs.applicationName} was unable to be fully synced after ${inputs.maxRetry} retries. Take a look at ${inputs.endpoint}/applications/${inputs.applicationName}`)
 			}
@@ -8570,17 +8573,31 @@ const checkReady = (inputs = getInputs(), retry = inputs.maxRetry) => {
 		.catch(err => setFailed(err))
 }
 
-const checkResponse = (response) => {
-	info(`Response from ${response.url} [${response.status}] ${response.statusText}`)
-	if (response.status >= 200 && response.status < 300) {
+const checkResponse = (method, response) => {
+	info(`Response from ${method} request at ${response.url}: [${response.status}] ${response.statusText}.`)
+	if ((response.status >= 200 && response.status < 300) || response.status == 400) {
 		return response;
 	}
-	throw new Error(`${response.url} ${response.statusText}`);
+	throw new Error(`${response.url} ${response.statusText}: ${json.stringify(response)}`);
 }
+
+const checkDeleteResponse = (response) => {
+	info(`Response from ${response.url} [${response.status}] ${response.statusText}`)
+	if (
+		(response.status >= 200 && response.status < 300) ||
+		response.status == 400 ||
+		response.status == 404
+	) {
+		return response;
+	}
+	throw new Error(`${response.url} ${response.statusText}: ${json.stringify(response)}`)
+}
+
+
 
 const syncApplication = (inputs = getInputs()) => {
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}/sync`, generateOpts("post", inputs.token, null))
-		.then(checkResponse)
+		.then((response) => checkResponse("POST/SYNC", response))
 		.then(() => checkReady(inputs))
 		.catch(err => setFailed(err.message))
 }
@@ -8589,7 +8606,7 @@ const createApplication = (inputs = getInputs()) => {
 	specs = generateSpecs(inputs)
 	info(`[CREATE] Sending request to ${inputs.endpoint}/api/v1/applications`)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications`, generateOpts("post", inputs.token, specs))
-		.then(checkResponse)
+		.then((response) => checkResponse("POST", response))
 		.then(r => r.json())
 		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))
 		.catch(err => setFailed(err))
@@ -8598,7 +8615,7 @@ const createApplication = (inputs = getInputs()) => {
 const readApplication = (inputs = getInputs()) => {
 	info(`[READ] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("get", inputs.token, null))
-		.then(checkResponse)
+		.then((response) => checkResponse("GET", response))
 		.then(r => r.json())
 		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))
 		.catch(err => setFailed(err))
@@ -8607,15 +8624,16 @@ const readApplication = (inputs = getInputs()) => {
 const updateApplication = (inputs = getInputs()) => {
 	info(`[UPDATE] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 	specs = generateSpecs(inputs)
+	info["[UPDATE] specs,", specs]
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("put", inputs.token, specs))
-		.then(checkResponse)
+		.then((response) => checkResponse("PUT", response))
 		.catch(err => setFailed(err))
 }
 
 const deleteApplication = (inputs = getInputs()) => {
 	info(`[DELETE] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("delete", inputs.token, null))
-		.then(checkResponse)
+		.then(checkDeleteResponse)
 		.then(() => setOutput("application", JSON.stringify({ deleted: true })))
 		.catch(err => setFailed(err))
 }
@@ -8627,27 +8645,59 @@ const parseApplicationParams = (appParams = "") => {
 	})
 }
 
+const parseApplicationValueFiles = (valuesFiles = "") => {
+	return valuesFiles.split(';')
+}
+
+
 const generateSpecs = (inputs = getInputs()) => {
 	helmParameters = parseApplicationParams(inputs.applicationParams)
-	return {
-		metadata: {
-			name: inputs.applicationName,
-			namespace: "default"
-		},
-		spec: {
-			source: {
-				repoURL: inputs.helmRepoUrl,
-				targetRevision: inputs.helmChartVersion,
-				helm: {
-					parameters: helmParameters
+	helmValuesFiles = parseApplicationValueFiles(inputs.applicationValueFiles)
+	if (inputs.applicationValueFiles != "") {
+		return {
+			metadata: {
+				name: inputs.applicationName,
+				namespace: inputs.argocdApplicationNamespace
+			},
+			spec: {
+				source: {
+					repoURL: inputs.helmRepoUrl,
+					targetRevision: inputs.helmChartVersion,
+					helm: {
+						parameters: helmParameters,
+						valueFiles: helmValuesFiles
+					},
+					chart: inputs.helmChartName
 				},
-				chart: inputs.helmChartName
+				destination: {
+					name: inputs.destClusterName, namespace: inputs.applicationNamespace
+				},
+				project: inputs.applicationProject,
+				syncPolicy: {}
+			}
+		}
+
+	} else {
+		return {
+			metadata: {
+				name: inputs.applicationName,
+				namespace: inputs.argocdApplicationNamespace
 			},
-			destination: {
-				name: inputs.destClusterName, namespace: inputs.applicationNamespace
-			},
-			project: inputs.applicationProject,
-			syncPolicy: {}
+			spec: {
+				source: {
+					repoURL: inputs.helmRepoUrl,
+					targetRevision: inputs.helmChartVersion,
+					helm: {
+						parameters: helmParameters,
+					},
+					chart: inputs.helmChartName
+				},
+				destination: {
+					name: inputs.destClusterName, namespace: inputs.applicationNamespace
+				},
+				project: inputs.applicationProject,
+				syncPolicy: {}
+			}
 		}
 	}
 }
@@ -8681,6 +8731,7 @@ const main = () => {
 }
 
 main()
+
 })();
 
 module.exports = __webpack_exports__;

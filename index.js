@@ -29,13 +29,11 @@ const getInputs = () => {
 
 		if (
 			(action == "create" || action == "update") &&
-			(applicationParams == ""
-				|| applicationValueFiles == ""
-				|| destClusterName == ""
-				|| helmChartName == ""
-				|| helmChartVersion == ""
-				|| helmRepoUrl == "")
-		) {
+			(applicationParams == "" && applicationValueFiles == "")
+			|| destClusterName == ""
+			|| helmChartName == ""
+			|| helmChartVersion == ""
+			|| helmRepoUrl == "") {
 			throw new Error(`You must also provide (applicationParams, applicationValueFiles, destClusterName, helmChartName, helmChartVersion, helmRepoUrl) inputs when using ${action} action`)
 		}
 
@@ -80,7 +78,7 @@ const checkReady = (inputs = getInputs(), retry = inputs.maxRetry) => {
 			const status = jsonResponse.status.health.status
 			info(`Application ${inputs.applicationName} has status ${status} (Left retries ${retry})`)
 			if (status != "Healthy" && retry > 0) {
-				setTimeout(() => {checkReady(inputs, retry - 1)}, inputs.tts * 1000)
+				setTimeout(() => { checkReady(inputs, retry - 1) }, inputs.tts * 1000)
 			} else if (status != "Healthy" && retry == 0) {
 				throw new Error(`[SYNC] ${inputs.applicationName} was unable to be fully synced after ${inputs.maxRetry} retries. Take a look at ${inputs.endpoint}/applications/${inputs.applicationName}`)
 			}
@@ -89,23 +87,23 @@ const checkReady = (inputs = getInputs(), retry = inputs.maxRetry) => {
 }
 
 const checkResponse = (method, response) => {
-	info(`Response from ${method} request at ${response.url}: [${response.status}] ${response.statusText}`)
+	info(`Response from ${method} request at ${response.url}: [${response.status}] ${response.statusText}.`)
 	if ((response.status >= 200 && response.status < 300) || response.status == 400) {
 		return response;
 	}
-	throw new Error(`${response.url} ${response.statusText}`);
+	throw new Error(`${response.url} ${response.statusText}: ${json.stringify(response)}`);
 }
 
 const checkDeleteResponse = (response) => {
 	info(`Response from ${response.url} [${response.status}] ${response.statusText}`)
-        if (
-          (response.status >= 200 && response.status < 300) ||
-          response.status == 400 ||
-          response.status == 404
-        ) {
-          return response;
-        }
-	throw new Error(`${response.url} ${response.statusText}`);
+	if (
+		(response.status >= 200 && response.status < 300) ||
+		response.status == 400 ||
+		response.status == 404
+	) {
+		return response;
+	}
+	throw new Error(`${response.url} ${response.statusText}: ${json.stringify(response)}`)
 }
 
 
@@ -139,6 +137,7 @@ const readApplication = (inputs = getInputs()) => {
 const updateApplication = (inputs = getInputs()) => {
 	info(`[UPDATE] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 	specs = generateSpecs(inputs)
+	info["[UPDATE] specs,", specs]
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("put", inputs.token, specs))
 		.then((response) => checkResponse("PUT", response))
 		.catch(err => setFailed(err))
@@ -167,26 +166,51 @@ const parseApplicationValueFiles = (valuesFiles = "") => {
 const generateSpecs = (inputs = getInputs()) => {
 	helmParameters = parseApplicationParams(inputs.applicationParams)
 	helmValuesFiles = parseApplicationValueFiles(inputs.applicationValueFiles)
-	return {
-		metadata: {
-			name: inputs.applicationName,
-			namespace: inputs.argocdApplicationNamespace
-		},
-		spec: {
-			source: {
-				repoURL: inputs.helmRepoUrl,
-				targetRevision: inputs.helmChartVersion,
-				helm: {
-					parameters: helmParameters,
-					valueFiles: helmValuesFiles
+	if (inputs.applicationValueFiles != "") {
+		return {
+			metadata: {
+				name: inputs.applicationName,
+				namespace: inputs.argocdApplicationNamespace
+			},
+			spec: {
+				source: {
+					repoURL: inputs.helmRepoUrl,
+					targetRevision: inputs.helmChartVersion,
+					helm: {
+						parameters: helmParameters,
+						valueFiles: helmValuesFiles
+					},
+					chart: inputs.helmChartName
 				},
-				chart: inputs.helmChartName
+				destination: {
+					name: inputs.destClusterName, namespace: inputs.applicationNamespace
+				},
+				project: inputs.applicationProject,
+				syncPolicy: {}
+			}
+		}
+
+	} else {
+		return {
+			metadata: {
+				name: inputs.applicationName,
+				namespace: inputs.argocdApplicationNamespace
 			},
-			destination: {
-				name: inputs.destClusterName, namespace: inputs.applicationNamespace
-			},
-			project: inputs.applicationProject,
-			syncPolicy: {}
+			spec: {
+				source: {
+					repoURL: inputs.helmRepoUrl,
+					targetRevision: inputs.helmChartVersion,
+					helm: {
+						parameters: helmParameters,
+					},
+					chart: inputs.helmChartName
+				},
+				destination: {
+					name: inputs.destClusterName, namespace: inputs.applicationNamespace
+				},
+				project: inputs.applicationProject,
+				syncPolicy: {}
+			}
 		}
 	}
 }

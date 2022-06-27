@@ -29,13 +29,11 @@ const getInputs = () => {
 
 		if (
 			(action == "create" || action == "update") &&
-			(applicationParams == ""
-				|| applicationValueFiles == ""
-				|| destClusterName == ""
-				|| helmChartName == ""
-				|| helmChartVersion == ""
-				|| helmRepoUrl == "")
-		) {
+			(applicationParams == "" && applicationValueFiles == "")
+			|| destClusterName == ""
+			|| helmChartName == ""
+			|| helmChartVersion == ""
+			|| helmRepoUrl == "") {
 			throw new Error(`You must also provide (applicationParams, applicationValueFiles, destClusterName, helmChartName, helmChartVersion, helmRepoUrl) inputs when using ${action} action`)
 		}
 
@@ -80,7 +78,7 @@ const checkReady = (inputs = getInputs(), retry = inputs.maxRetry) => {
 			const status = jsonResponse.status.health.status
 			info(`Application ${inputs.applicationName} has status ${status} (Left retries ${retry})`)
 			if (status != "Healthy" && retry > 0) {
-				setTimeout(() => {checkReady(inputs, retry - 1)}, inputs.tts * 1000)
+				setTimeout(() => { checkReady(inputs, retry - 1) }, inputs.tts * 1000)
 			} else if (status != "Healthy" && retry == 0) {
 				throw new Error(`[SYNC] ${inputs.applicationName} was unable to be fully synced after ${inputs.maxRetry} retries. Take a look at ${inputs.endpoint}/applications/${inputs.applicationName}`)
 			}
@@ -99,13 +97,13 @@ const checkResponse = (method, response) => {
 
 const checkDeleteResponse = (response) => {
 	info(`Response from ${response.url} [${response.status}] ${response.statusText}`)
-        if (
-          (response.status >= 200 && response.status < 300) ||
-          response.status == 400 ||
-          response.status == 404
-        ) {
-          return response;
-        }
+	if (
+		(response.status >= 200 && response.status < 300) ||
+		response.status == 400 ||
+		response.status == 404
+	) {
+		return response;
+	}
 	throw new Error(`${response.url} ${response.statusText}: ${json.stringify(response)}`)
 }
 

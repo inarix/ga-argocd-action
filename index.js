@@ -141,7 +141,7 @@ const readApplication = (inputs = getInputs(), to_update = false) => {
 const updateApplication = (inputs = getInputs(), previous_helm = []) => {
 	info(`[UPDATE] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 	specs = generateSpecs(inputs)
-	params = specs.spec.source.helm.parametes
+	params = specs.spec.source.helm.parameters
 	for (p of params) {
 		console.log("params= ", p)
 		param = Array.of(specs).find((hP) => p.name == hP.name)

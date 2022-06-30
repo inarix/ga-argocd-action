@@ -8629,10 +8629,11 @@ const updateApplication = (inputs = getInputs(), previous_helm = []) => {
 	info(`[UPDATE] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 	specs = generateSpecs(inputs)
 	params = specs.spec.source.helm.parameters
-	for (p of params) {
-		console.log("params= ", p)
-		param = Array.of(previous_helm).find((hP) => p.name == hP.name)
+	for (hP of previous_helm) {
+		console.log("params= ", hP)
+		param = Array.of(params).find((h) => hP.name == h.name)
 		if (!!param) {
+			console.log(`modifying param from ${p.name}=${p.value} to ${p.name}=${param.value}`)
 			p.value = param.value
 		}
 	}

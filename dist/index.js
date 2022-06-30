@@ -8611,18 +8611,24 @@ const createApplication = (inputs = getInputs()) => {
 		.catch(err => setFailed(err))
 }
 
-const readApplication = (inputs = getInputs()) => {
+const readApplication = (inputs = getInputs(), to_update = false) => {
 	info(`[READ] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("get", inputs.token, null))
 		.then((response) => checkResponse("GET", response))
 		.then(r => r.json())
-		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))
+		.then(jsonObj => {
+			if (!to_update) {
+				setOutput("application", JSON.stringify(jsonObj))
+			}
+			return jsonObj
+		})
 		.catch(err => setFailed(err))
 }
 
-const updateApplication = (inputs = getInputs()) => {
+const updateApplication = (inputs = getInputs(), previous_helm = []) => {
 	info(`[UPDATE] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 	specs = generateSpecs(inputs)
+	specs.helm
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("put", inputs.token, specs))
 		.then((response) => checkResponse("PUT", response))
 		.catch(err => setFailed(err))
@@ -8716,7 +8722,12 @@ const main = () => {
 			prom = createApplication(inputs)
 			break
 		case "update":
-			prom = updateApplication(inputs)
+			prom = readApplication(inputs, true).then(obj => obj?.spec?.source?.helm?.parameters).then((helm_params) => {
+				if (Array.isArray(helm_params) && helm_params.length > 0) {
+					return updateApplication(inputs, helm_params)
+				}
+				throw new Error(`Helm parameters must exists and be a non empty array ${Array.isArray(helm_params)} -> ${helm_params.length} items`)
+			})
 			break
 		default:
 			setFailed(new Error(`${inputs.action} does not exists in (create, get|read, update, delete)`))

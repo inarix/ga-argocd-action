@@ -145,7 +145,8 @@ const updateApplication = (inputs = getInputs(), previous_helm = []) => {
 	for (hP of previous_helm) {
 		console.log("params= ", hP)
 		param = Array.of(params).find((h) => {
-			console.log(`activeHp=${hP} current=${h}`)
+			console.log(`hP=`, hP)
+			console.log(`h(params)=`, h)
 			return hP.name == h.name
 		})
 		console.log("found param -> ", param)

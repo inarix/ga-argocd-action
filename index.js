@@ -142,9 +142,10 @@ const updateApplication = (inputs = getInputs(), previous_helm = []) => {
 	info(`[UPDATE] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 	specs = generateSpecs(inputs)
 	params = specs.spec.source.helm.parameters
+	console.log("params ", params)
 	for (hP of previous_helm) {
 		console.log("params= ", hP)
-		param = Array.of(params).find((h) => {
+		param = params.find((h) => {
 			console.log(`hP=`, hP)
 			console.log(`h(params)=`, h)
 			return hP.name == h.name

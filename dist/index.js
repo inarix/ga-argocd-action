@@ -8632,11 +8632,13 @@ const updateApplication = (inputs = getInputs(), previous_helm = []) => {
 	for (hP of previous_helm) {
 		console.log("params= ", hP)
 		param = Array.of(params).find((h) => hP.name == h.name)
+		console.log("found param -> ", param)
 		if (!!param) {
 			console.log(`modifying param from ${p.name}=${p.value} to ${p.name}=${param.value}`)
-			p.value = param.value
+			hP.value = param.value
 		}
 	}
+	specs.spec.source.helm.parameters = previous_helm
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("put", inputs.token, specs))
 		.then((response) => checkResponse("PUT", response))
 		.catch(err => setFailed(err))

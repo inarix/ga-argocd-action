@@ -8631,7 +8631,10 @@ const updateApplication = (inputs = getInputs(), previous_helm = []) => {
 	params = specs.spec.source.helm.parameters
 	for (hP of previous_helm) {
 		console.log("params= ", hP)
-		param = Array.of(params).find((h) => hP.name == h.name)
+		param = Array.of(params).find((h) => {
+			console.log(`activeHp=${hP} current=${h}`)
+			return hP.name == h.name
+		})
 		console.log("found param -> ", param)
 		if (!!param) {
 			console.log(`modifying param from ${p.name}=${p.value} to ${p.name}=${param.value}`)

@@ -8639,7 +8639,6 @@ const updateApplication = (inputs = getInputs(), previous_helm = []) => {
 		})
 		console.log("found param -> ", param)
 		if (!!param) {
-			console.log(`modifying param from ${p.name}=${p.value} to ${p.name}=${param.value}`)
 			hP.value = param.value
 		}
 	}

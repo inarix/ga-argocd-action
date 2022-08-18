@@ -8740,7 +8740,7 @@ const main = () => {
 				if (Array.isArray(helm_params) && helm_params.length > 0) {
 					return updateApplication(inputs, helm_params)
 				}
-				throw new Error(`Helm parameters must exists and be a non empty array ${Array.isArray(helm_params)} -> ${helm_params.length} items`)
+				throw new Error(`Helm parameters must exists and be a non empty array ${Array.isArray(helm_params)}`)
 			})
 			break
 		case "restart":

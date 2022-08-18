@@ -66,9 +66,10 @@ const generateOpts = (method = "", bearerToken = "", bodyObj) => {
 	if (method == "delete" || method == "get") {
 		return { method, headers: { "Authorization": `Bearer ${bearerToken}` } }
 	} else if (bodyObj == null) {
-		return { method, headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` } }
+		return { method, headers: { "Authorization": `Bearer ${bearerToken}` } }
+	} else if (method == "restart") {
+		payload = { method: "post", body: bodyObj, headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${bearerToken}` } }
 	}
-	payload = { method, body: JSON.stringify(bodyObj), headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` }, }
 	return payload
 }
 
@@ -160,6 +161,14 @@ const deleteApplication = (inputs = getInputs()) => {
 		.catch(err => setFailed(err))
 }
 
+const restartApplication = (inputs = getInputs(), last_deploy = { "group": "apps", "version": "v1", "kind": "Deployment", "namespace": "", "name": "" }) => {
+	namespace = last_deploy.namespace
+	resourceName = last_deploy.name
+	info(`[RESTART] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}/resource/actions?namespace=${namespace}&resourceName=${resourceName}version=v1&kind=Deployment&group=apps`)
+	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}/resource/actions?namespace=${namespace}&resourceName=${resourceName}version=v1&kind=Deployment&group=apps`, generateOpts("restart", inputs.token, "restart"))
+		.then((response) => checkResponse("post", response))
+}
+
 const parseApplicationParams = (appParams = "") => {
 	return appParams.split(";").map((v) => {
 		const [name, value] = v.split("=", 2)
@@ -247,8 +256,21 @@ const main = () => {
 				throw new Error(`Helm parameters must exists and be a non empty array ${Array.isArray(helm_params)} -> ${helm_params.length} items`)
 			})
 			break
+		case "restart":
+			prom = readApplication(inputs, true).then(obj => obj?.status?.resources).then((resources) => {
+				if (Array.isArray(resources) && resources.length > 0) {
+					console.log("Resources = ", resources)
+					resourceFiltered = resources.filter((resObj) => resObj?.kind == "Deployment")
+					if (resourceFiltered.length == 1) {
+						return restartApplication(inputs, resourceFiltered.pop())
+					} else {
+						throw new Error(`Cannot find any deployement to restart in application ${inputs.applicationName}`)
+					}
+				}
+				throw new Error(`Helm parameters must exists and be a non empty array`)
+			})
 		default:
-			setFailed(new Error(`${inputs.action} does not exists in (create, get|read, update, delete)`))
+			setFailed(new Error(`${inputs.action} does not exists in (create, get|read, update, delete, restart)`))
 			return
 	}
 	if (prom != null) {

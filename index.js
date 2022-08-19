@@ -68,9 +68,9 @@ const generateOpts = (method = "", bearerToken = "", bodyObj) => {
 	} else if (bodyObj == null) {
 		return { method, headers: { "Authorization": `Bearer ${bearerToken}` } }
 	} else if (method == "restart") {
-		payload = { method: "post", body: bodyObj, headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${bearerToken}` } }
+		return { method: "post", body: bodyObj, headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${bearerToken}` } }
 	}
-	return payload
+	return { method: "post", body: bodyObj, headers: {"Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` } }
 }
 
 const checkReady = (inputs = getInputs(), retry = inputs.maxRetry) => {

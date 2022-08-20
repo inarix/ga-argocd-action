@@ -8550,14 +8550,12 @@ const getInputs = () => {
 }
 
 const generateOpts = (method = "", bearerToken = "", bodyObj) => {
-	if (method == "delete" || method == "get") {
-		return { method, headers: { "Authorization": `Bearer ${bearerToken}` } }
-	} else if (bodyObj == null) {
+	if (method == "delete" || method == "get" || bodyObj == null) {
 		return { method, headers: { "Authorization": `Bearer ${bearerToken}` } }
 	} else if (method == "restart") {
 		return { method: "post", body: bodyObj, headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${bearerToken}` } }
 	}
-	return { method: "post", body: bodyObj, headers: {"Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` } }
+	return { method, body: bodyObj, headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` } }
 }
 
 const checkReady = (inputs = getInputs(), retry = inputs.maxRetry) => {

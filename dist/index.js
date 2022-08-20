@@ -8555,6 +8555,7 @@ const generateOpts = (method = "", bearerToken = "", bodyObj) => {
 	} else if (method == "restart") {
 		return { method: "post", body: bodyObj, headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${bearerToken}` } }
 	}
+	info(`Body obj = ${JSON.stringify(bodyObj)}`)
 	return { method, body: bodyObj, headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` } }
 }
 
@@ -8576,8 +8577,10 @@ const checkReady = (inputs = getInputs(), retry = inputs.maxRetry) => {
 
 const checkResponse = (method, response) => {
 	info(`Response from ${method} request at ${response.url}: [${response.status}] ${response.statusText}.`)
-	if ((response.status >= 200 && response.status < 300) || response.status == 400) {
-		info(`Response from ${method} request at ${response.url}: [${response.status}] ${response.statusText} ${JSON.stringify(response)}.`)
+	if ((response.status >= 200 && response.status < 300)) {
+		return response;
+	} else if (response.status == 400) {
+		info(`[${response.status}] ${response.statusText} from ${method}::${response.url}:  ${JSON.stringify(response)}.`)
 		return response;
 	}
 	throw new Error(`${response.url} ${response.statusText}: ${JSON.stringify(response)}`);

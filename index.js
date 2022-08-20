@@ -63,14 +63,12 @@ const getInputs = () => {
 }
 
 const generateOpts = (method = "", bearerToken = "", bodyObj) => {
-	if (method == "delete" || method == "get") {
+	if (method == "delete" || method == "get" || bodyObj == null) {
 		return { method, headers: { "Authorization": `Bearer ${bearerToken}` } }
-	} else if (bodyObj == null) {
-		return { method, headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` } }
+	} else if (method == "restart") {
+		return { method: "post", body: bodyObj, headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${bearerToken}` } }
 	}
-	payload = { method, body: JSON.stringify(bodyObj), headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` }, }
-	console.log(`The event payload: ${JSON.stringify(payload.body)}`);
-	return payload
+	return { method, body: JSON.stringify(bodyObj), headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` } }
 }
 
 const checkReady = (inputs = getInputs(), retry = inputs.maxRetry) => {
@@ -91,7 +89,10 @@ const checkReady = (inputs = getInputs(), retry = inputs.maxRetry) => {
 
 const checkResponse = (method, response) => {
 	info(`Response from ${method} request at ${response.url}: [${response.status}] ${response.statusText}.`)
-	if ((response.status >= 200 && response.status < 300) || response.status == 400) {
+	if ((response.status >= 200 && response.status < 300)) {
+		return response;
+	} else if (response.status == 400) {
+		info(`[${response.status}] ${response.statusText} from ${method}::${response.url}:  ${JSON.stringify(response)}.`)
 		return response;
 	}
 	throw new Error(`${response.url} ${response.statusText}: ${JSON.stringify(response)}`);
@@ -124,18 +125,30 @@ const createApplication = (inputs = getInputs()) => {
 		.catch(err => setFailed(err))
 }
 
-const readApplication = (inputs = getInputs()) => {
+const readApplication = (inputs = getInputs(), to_update = false) => {
 	info(`[READ] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("get", inputs.token, null))
 		.then((response) => checkResponse("GET", response))
 		.then(r => r.json())
-		.then(jsonObj => setOutput("application", JSON.stringify(jsonObj)))
+		.then(jsonObj => {
+			if (!to_update) {
+				setOutput("application", JSON.stringify(jsonObj))
+			}
+			return jsonObj
+		})
 		.catch(err => setFailed(err))
 }
 
-const updateApplication = (inputs = getInputs()) => {
+const updateApplication = (inputs = getInputs(), previous_helm = []) => {
 	info(`[UPDATE] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`)
 	specs = generateSpecs(inputs)
+	params = specs.spec.source.helm.parameters
+	for (hP of previous_helm) {
+		param = params.find((h) => hP.name == h.name)
+		if (!!param)
+			hP.value = param.value
+	}
+	specs.spec.source.helm.parameters = previous_helm
 	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}`, generateOpts("put", inputs.token, specs))
 		.then((response) => checkResponse("PUT", response))
 		.catch(err => setFailed(err))
@@ -147,6 +160,14 @@ const deleteApplication = (inputs = getInputs()) => {
 		.then(checkDeleteResponse)
 		.then(() => setOutput("application", JSON.stringify({ deleted: true })))
 		.catch(err => setFailed(err))
+}
+
+const restartApplication = (inputs = getInputs(), last_deploy = { "group": "apps", "version": "v1", "kind": "Deployment", "namespace": "", "name": "" }) => {
+	namespace = last_deploy.namespace
+	resourceName = last_deploy.name
+	info(`[RESTART] Sending request to ${inputs.endpoint}/api/v1/applications/${inputs.applicationName}/resource/actions?namespace=${namespace}&resourceName=${resourceName}version=v1&kind=Deployment&group=apps`)
+	return fetch.default(`${inputs.endpoint}/api/v1/applications/${inputs.applicationName}/resource/actions?namespace=${namespace}&resourceName=${resourceName}version=v1&kind=Deployment&group=apps`, generateOpts("restart", inputs.token, "restart"))
+		.then((response) => checkResponse("post", response))
 }
 
 const parseApplicationParams = (appParams = "") => {
@@ -229,10 +250,28 @@ const main = () => {
 			prom = createApplication(inputs)
 			break
 		case "update":
-			prom = updateApplication(inputs)
+			prom = readApplication(inputs, true).then(obj => obj?.spec?.source?.helm?.parameters).then((helm_params) => {
+				if (Array.isArray(helm_params) && helm_params.length > 0) {
+					return updateApplication(inputs, helm_params)
+				}
+				throw new Error(`Helm parameters must exists and be a non empty array ${Array.isArray(helm_params)}`)
+			})
 			break
+		case "restart":
+			prom = readApplication(inputs, true).then(obj => obj?.status?.resources).then((resources) => {
+				if (Array.isArray(resources) && resources.length > 0) {
+					console.log("Resources = ", resources)
+					resourceFiltered = resources.filter((resObj) => resObj?.kind == "Deployment")
+					if (resourceFiltered.length == 1) {
+						return restartApplication(inputs, resourceFiltered.pop())
+					} else {
+						throw new Error(`Cannot find any deployement to restart in application ${inputs.applicationName}`)
+					}
+				}
+				throw new Error(`Helm parameters must exists and be a non empty array`)
+			})
 		default:
-			setFailed(new Error(`${inputs.action} does not exists in (create, get|read, update, delete)`))
+			setFailed(new Error(`${inputs.action} does not exists in (create, get|read, update, delete, restart)`))
 			return
 	}
 	if (prom != null) {

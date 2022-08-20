@@ -8555,7 +8555,7 @@ const generateOpts = (method = "", bearerToken = "", bodyObj) => {
 	} else if (method == "restart") {
 		return { method: "post", body: bodyObj, headers: { "Content-Type": "multipart/form-data", "Authorization": `Bearer ${bearerToken}` } }
 	}
-	return { method, body: JSON.stringif(bodyObj), headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` } }
+	return { method, body: JSON.stringify(bodyObj), headers: { "Content-Type": "application/json", "Authorization": `Bearer ${bearerToken}` } }
 }
 
 const checkReady = (inputs = getInputs(), retry = inputs.maxRetry) => {
